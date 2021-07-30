@@ -13,6 +13,7 @@
     <label>데이터 가져오기<button @click="getData">데이터 가져오기</button></label>
 
     <div class="socket-detail">
+      <h3>타겟 설정</h3>
       <div class="grid">
         <span class="label">유물</span>
         <span class="target-socket" v-for="sock of targetSocket" :key="sock">{{sock}}</span>
@@ -30,14 +31,15 @@
         <span class="remain-socket" v-for="sock of remainSocket" :key="sock">{{sock}}</span>
       </div>
       <div class="socket-composition">
+        <h3>합분해 구하기</h3>
         <div>
-          <button @click="onClickComposition">숫자 조합 계산</button>
+          <button @click="onClickComposition">합분해 계산</button>
           <span class="able-socket" v-for="comp of composition" :key="comp">
             {{comp}}
           </span>
         </div>
         <div style="margin-top: 48px">
-          <h3>가능한 숫자 조합!!!!!</h3>
+          <h3>합분해 숫자 조합 구하기</h3>
           <div v-for="row of ableComposition" :key="row">
             <span class="label" style="font-weight: 700; font-size: 1.25rem;">=></span>
             <span class="able-socket" v-for="comp of row" :key="comp">
@@ -49,12 +51,16 @@
     </div>
 
     <div class="socket-cases">
-      <div class="cases" v-for="row of lastComposition" :key="row">
-        <div class="row" v-for="comp of row" :key="comp">
-         <span class="label" style="font-weight: 700; font-size: 1.25rem;">=></span>
-          <span class="value" v-for="cases of comp" :key="cases">
-            <span v-if="cases > 0">{{cases}}</span>
-          </span>
+      <h3>최종 각인 케이스 목록</h3>
+      <div class="comp" v-for="cases of lastComposition" :key="cases">
+        <div class="cases" v-for="(row, caseIndex) of cases" :key="row">
+          <h4>케이스 {{caseIndex}}번</h4>
+          <div class="row" v-for="(mid, accIndex) of row" :key="mid">
+            <span class="label" style="font-weight: 700; font-size: 1.25rem;">악세 {{accIndex}}.</span>
+            <span class="value" v-for="value of mid" :key="value">
+              <span v-if="value > 0">{{value}}</span>
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -83,9 +89,12 @@ export default class GetData extends Vue {
     composition: any[] = [];
     // 수치 조합 경우의 수
     ableComposition: any[] = [];
-
     // 악세사리 필요
     lastComposition: any[] = [];
+
+    accCount = 5;
+    accSocketNumber = 2;
+
 
     get remainSocket() {
       let output: number[] = [];
@@ -93,6 +102,11 @@ export default class GetData extends Vue {
         output[i] = this.targetSocket[i] - this.stoneSocket[i] - this.docSocket[i];
       }
       return output;
+    }
+    get remainSocketSum() {
+      let sum = 0;
+      this.remainSocket.forEach(val => sum += val);
+      return sum;
     }
     // created() {
 
@@ -208,36 +222,37 @@ export default class GetData extends Vue {
       this.remainSocket.forEach(val => {
         let comp = this.getDesposition(val, useList);
         this.composition.push(comp)
-        // lengthList.push(
-        //   comp.map((val : any) => {
-        //     console.log(val.filter((val2: number) => val2 === 3));
-        //     val.filter((val2: number) => val2 === 3).length
-        //     return val.length;
-        //   })
-        // );
       })
+
+      // 가능한 합분해 조합 구하기
 
       let ableComp: any[] = [];
       let recursive = (remain : number, maxcount: number, makeList: any[]) => {
         if(maxcount > 5) {
           return;
         }
-        console.log('length1 = ', this.composition[maxcount].length)
         for(let i = 0; i < this.composition[maxcount].length; ++i) {
           let target = this.composition[maxcount][i];
           let nextRemain = remain - target.length;
-          console.log(maxcount, target, target.length, nextRemain);
 
           if(maxcount < 4 && nextRemain <= 0) {
             continue;
           }
           if(maxcount === 4 && nextRemain === 0) {
-            ableComp.push([...makeList, target]);
+            let sum = 0;
+            [...makeList, target].forEach((val2: number[]) => {
+              let innerSum = 0;
+              val2.forEach((val3 : number) => innerSum += val3);
+              sum += innerSum;
+            });
+            // console.log(this.remainSocketSum, sum)
+            if(this.remainSocketSum <= sum){
+              ableComp.push([...makeList, target]);
+            }
             continue;
           }
           recursive(nextRemain, maxcount + 1, maxcount === 0 ? [target] : [...makeList, target]);
         }
-        console.log('length2 = ', this.composition[maxcount].length)
       }
       recursive(10, 0, []);
       this.ableComposition = ableComp;
@@ -309,20 +324,19 @@ export default class GetData extends Vue {
      * @param {number} valuenumber : 악세서리에 부여되는 각인 개수 (보통 2개)
      */
     getAllCases(list: any[], accNumber: number, valueNumber: number) {
-      // let createAcc = () => {
-
-      // }
-      let output: any = [];
-      let recursive = (maxcount: number, makeList: number[],) => {
-        if(maxcount > 4){
-          return;
+      let rowRecursive = (sourceList: any[], maxcount: number, makeList: number[], output: any[]) => {
+        if(maxcount === 5){
+          return ;
         }
-        let step = [...list[maxcount], 0];
-        console.log(maxcount, step, makeList);
-        step.forEach(val => {
-          console.log('for', step, val)
+        // let removeDuplicate = sourceList.map((val: number[]) => {
+        //   return [...new Set(val)];
+        // })
+        let step = [...new Set(sourceList[maxcount]), 0];
+        // console.log(maxcount, step, makeList);
+        step.forEach((val:any) => {
+          // console.log('for', step, val)
           if(maxcount === 0) {
-            recursive(maxcount + 1, [val])
+            rowRecursive(sourceList, maxcount + 1, [val], output)
             return;
           }
           let newMakeList =  [...makeList, val];
@@ -332,11 +346,11 @@ export default class GetData extends Vue {
 
           // 각인 합이 8 넘어가면 중단
           if(sumOfSocket > 8) {
-            return;
+            return [];
           }
           // n개까지 고르지 않았으니 계속 진행
           if(validCount < valueNumber){
-            recursive(maxcount + 1, newMakeList);
+            rowRecursive(sourceList, maxcount + 1, newMakeList, output);
             return;
           }
           // 다 골라서 배열에 넣고 중단
@@ -344,20 +358,50 @@ export default class GetData extends Vue {
             // 3이 하나라도 없는 유물 반지는 ㄴㄴ
             let sumOfThree = newMakeList.filter(val => val === 3).length;
             if(sumOfThree === 0) {
-              return;
+              return [];
             }
             // TODO 8 이하여도 탈락(합이 40이어야 함)
-            if(sumOfSocket < 8) {
-              return;
-            }
-            output.push(newMakeList)
+            // if(sumOfSocket < 8) {
+            //   return;
+            // }
+            output.push(newMakeList);
             return;
           }
         })
-
       }
-      recursive(0, [])
-      return output;
+      let finalOutput: any[] = [];
+      let createAcc = (sourceList: any[], index: number, targetList: any[], result: any[]) => {
+        let rowOutput: any[] = [];
+        // row 리스트 획득
+        rowRecursive(sourceList, 0, [], rowOutput)
+        
+        console.log('index : ', index, ' sourceList [', sourceList.join('],['), '] targetList', targetList.join(' '));
+        console.log('rowOutput : ', rowOutput.join('\n'));
+
+        rowOutput.forEach((val: any[]) => {
+          // 마지막 악세서리일 때
+          if(index === 4) {
+            console.log('last', index, '=>', [...targetList, val].join(' - '));
+            finalOutput.push([...targetList, val]);
+            return;
+          }
+          // 리스트에서 제거한 새로운 리스트 생성
+          let newSourceList = JSON.parse(JSON.stringify(sourceList));
+          for(let i = 0; i < val.length; ++i){
+            if(val[i] > 0){
+              // skip 이 아니면 newSourceList 에서 숫자를 하나 뺀다.
+              newSourceList[i].splice(newSourceList[i].findIndex((src : number) => src === val[i]), 1)
+            }
+          }
+          // 리스트에서 제거한 후 다음 depth 순환
+          createAcc(newSourceList, index + 1, [...targetList, val], result);
+        })
+
+        return rowOutput;
+      }
+      createAcc(list, 0, [], finalOutput);
+      console.log('final', finalOutput);
+      return finalOutput;
     }
 }
 
@@ -425,17 +469,25 @@ const mockSocket = [
     }
   }
   .socket-cases{
-    .cases {
-      border: 1px solid #ddd;
-      margin: 4px;
-      .row{
-        background-color: #eee;
+    .comp {
+      border-top: 8px solid blue;
 
-        display: grid;
-        grid-template-columns: repeat(6, 128px);
-        justify-content: center;
+      .cases {
+        border: 1px solid #ddd;
+        margin: 8px 0;
+        h4{
+          margin: 8px 0;
+        }
+        .row{
+          background-color: #eee;
 
-        .value {
+          display: grid;
+          grid-template-columns: 84px repeat(5, 32px);
+          justify-content: center;
+
+          .value {
+            font-weight: 700;
+          }
         }
       }
     }
