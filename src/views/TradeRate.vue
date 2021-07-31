@@ -347,7 +347,6 @@ export default class TradeRate extends mixins(LifeSearchService, EnforceSearchSe
         }
         geoPrice.pricePerCount = geoPrice.price / this.orehaOnceNumber;
         geoPrice.compare = this.orehaData[grade].price - geoPrice.pricePerCount;
-        console.log([huntPrice,fishPrice,geoPrice])
         return [huntPrice,fishPrice,geoPrice]; // 제작비용
     }
     /**
