@@ -2,8 +2,8 @@
     <div class="root-wrapper">
         <SearchList v-if="showSearchList" @close="showSearchList = false">
             <div class="search-list" v-if="selectedCase">
-                <div class="select-case" v-for="cases of selectedCase.list" :key="cases.id">
-                    <div>이름 {{cases.name}}</div>
+                <div class="select-case" v-for="cases of selectedCase.list" :key="cases.id" @click="selectedAccList.push(cases)">
+                    <div>{{cases.name}}</div>
                     <div>거래가능 {{cases.count}}</div>
                     <div>특성1 {{cases.property1.name}} {{cases.property1.number}}</div>
                     <div v-if="cases.property2.number">특성2 {{cases.property2.name}} {{cases.property2.number}}</div>
@@ -26,63 +26,100 @@
                 </div>
             </div>
         </div>
-        <div 
-            class="grid-table">
+        <div class="grid-table">
             <div class="search"
                 @click="onClickSearch">
                 Search Now!
             </div>
-            <div class="headers">
-                <div class="conditions">
-                    <div style="grid-column: 1/3;">
-                        5, 3만 검색<input type="checkbox" v-model="fullMax"/>
-                    </div>
-                    <div class="acctype">
-                        <div 
-                            v-for="type of accTypeList" 
-                            :key="type.value" 
-                            class="item" 
-                            :class="{'select' : selectedAccType === type.value ? true : false}"
-                            @click="onClickAcctype(type)">
-                            {{type.label}}
+            <div style="display: flex; align-items: flex-start; flex-direction: column;">
+                <div class="headers">
+                    <div class="conditions">
+                        <div style="grid-column: 1/3;">
+                            5, 3만 검색<input type="checkbox" v-model="fullMax"/>
                         </div>
-                    </div>
-                    <!-- <div>
-                        <div v-for="type of propTypeList" :key="type.value">
-                            {{type.label}}
-                        </div>
-                    </div> -->
-                </div>
-                <div class="header" v-for="sock of fixedSocket" :key="sock.id">
-                    {{sock.name}}<span v-if="sock.class">({{sock.class}})</span>
-                </div>
-            </div>
-            <div v-if="fixedSocket.length <= 0">
-                각인을 선택해주세요
-            </div>
-            <div class="contents">
-                <div class="row" v-for="(row, index) of dislaySocketMetrics" :key="row">
-                    <div class="data name">{{fixedSocket[index].name}}<span v-if="fixedSocket[index].class">({{fixedSocket[index].class}})</span></div>
-                    <div class="data" v-for="column of row" :key="column">
-                        <template v-if="column === null">
-                            <span style="grid-column: 1/4; grid-row: 1/4; align-self: center; font-size: 1.5rem;">-</span>
-                        </template>
-                        <template v-else>
-                            <div class="cases"
-                                v-for="cases of column"
-                                :key="cases.id"
-                                @click="onClickCase(cases)"> 
-                                {{cases.socket[0].name}} {{cases.socketNumber[0]}} <br /> 
-                                {{cases.socket[1].name}} {{cases.socketNumber[1]}} <br /> 
-                                <span :class="{'font-relics': cases.property1 === 0, 'font-legend': cases.property1 === 1, 'font-hero': cases.property1 === 2, }">{{propList[cases.property1]}}</span>
-                                <span v-if="cases.acctype === 200010" style="margin-left: 4px;" :class="{'font-relics': cases.property2 === 0, 'font-legend': cases.property2 === 1, 'font-hero': cases.property2 === 2, }">{{propList[cases.property2]}}</span>({{cases.list.length}})<br />
-                                <span class="price font-gold">{{cases.price}}💰</span>
+                        <div class="acctype">
+                            <div 
+                                v-for="type of accTypeList" 
+                                :key="type.value" 
+                                class="item" 
+                                :class="{'select' : selectedAccType === type.value ? true : false}"
+                                @click="onClickAcctype(type)">
+                                {{type.label}}
                             </div>
-                        </template>
+                        </div>
+                        <!-- <div>
+                            <div v-for="type of propTypeList" :key="type.value">
+                                {{type.label}}
+                            </div>
+                        </div> -->
+                    </div>
+                    <div class="header" v-for="sock of fixedSocket" :key="sock.id">
+                        {{sock.name}}<span v-if="sock.class">({{sock.class}})</span>
+                    </div>
+                </div>
+                <div v-if="fixedSocket.length <= 0">
+                    각인을 선택해주세요
+                </div>
+                <div class="contents">
+                    <div class="row" v-for="(row, index) of dislaySocketMetrics" :key="row">
+                        <div class="data name">{{fixedSocket[index].name}}<span v-if="fixedSocket[index].class">({{fixedSocket[index].class}})</span></div>
+                        <div class="data" v-for="column of row" :key="column">
+                            <template v-if="column === null">
+                                <span style="grid-column: 1/4; grid-row: 1/4; align-self: center; font-size: 1.5rem;">🎃</span>
+                            </template>
+                            <template v-else>
+                                <div class="cases"
+                                    v-for="cases of column"
+                                    :key="cases.id"
+                                    @click="onClickCase(cases)"> 
+                                    {{cases.socket[0].name}} {{cases.socketNumber[0]}} <br /> 
+                                    {{cases.socket[1].name}} {{cases.socketNumber[1]}} <br /> 
+                                    <span :class="{'font-relics': cases.property1 === 0, 'font-legend': cases.property1 === 1, 'font-hero': cases.property1 === 2, }">{{propList[cases.property1]}}</span>
+                                    <span v-if="cases.acctype === 200010" style="margin-left: 4px;" :class="{'font-relics': cases.property2 === 0, 'font-legend': cases.property2 === 1, 'font-hero': cases.property2 === 2, }">{{propList[cases.property2]}}</span>({{cases.list.length}})<br />
+                                    <span class="price font-gold">{{cases.price}}💰</span>
+                                </div>
+                            </template>
+                        </div>
                     </div>
                 </div>
             </div>
 
+            <div class="temp-list">
+                <div v-for="item of selectedAccList" :key="item.property1.number + item.price">
+                    <div>{{item.name}}</div>
+                    <div>거래가능 {{item.count}}</div>
+                    <div>특성1 {{item.property1.name}} {{item.property1.number}}</div>
+                    <div><span  v-if="item.property2.number">특성2 {{item.property2.name}} {{item.property2.number}}</span><span v-else>-</span></div>
+                    <div>각인1 {{item.socket1.name}} {{item.socket1.number}}</div>
+                    <div>각인2 {{item.socket2.name}} {{item.socket2.number}}</div>
+                    <div>패널티 {{item.badSocket1.name}} {{item.badSocket1.number}}</div>
+                    <div>가격 {{item.price}}</div>
+                </div>
+            </div>
+
+            <div class="sum">
+                <!-- <div>특성1 {{item.property1.name}} {{item.property1.number}}</div>
+                <div><span  v-if="item.property2.number">특성2 {{item.property2.name}} {{item.property2.number}}</span><span v-else>-</span></div>
+                <div>각인1 {{item.socket1.name}} {{item.socket1.number}}</div>
+                <div>각인2 {{item.socket2.name}} {{item.socket2.number}}</div>
+                <div>패널티 {{item.badSocket1.name}} {{item.badSocket1.number}}</div> -->
+                <div>가격 {{displaySumOfSelection.price}}</div>
+                <div>각인 
+                    <div v-for="sock of Object.keys(displaySumOfSelection.socketList)" :key="sock.name">
+                        {{sock}} - {{displaySumOfSelection.socketList[sock]}}
+                    </div>
+                </div>
+                <div>패널티
+                    <div v-for="sock of Object.keys(displaySumOfSelection.badSocketList)" :key="sock.name">
+                        {{sock}} - {{displaySumOfSelection.badSocketList[sock]}}
+                    </div>
+                </div>
+                <div>특성
+                    <div v-for="prop of Object.keys(displaySumOfSelection.propertyList)" :key="prop.name">
+                        {{prop}} - {{displaySumOfSelection.propertyList[prop]}}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -163,6 +200,9 @@ export default class AccList extends mixins(AccSearchService) {
     ]
     selectedPropType = 0;
 
+    // 고른 악세서리 목록
+    selectedAccList: AccData[] = [];
+
 
     /**
      * * 남겨진 각인 목록
@@ -175,6 +215,9 @@ export default class AccList extends mixins(AccSearchService) {
             return index < 0;
         })
     }
+    /**
+     * * 타입에 따라 보여주는 행렬이 다르다.
+     */
     get dislaySocketMetrics() {
         switch(this.selectedAccType){
             case 200010:
@@ -186,6 +229,51 @@ export default class AccList extends mixins(AccSearchService) {
             default:
                 return [];
         }
+    }
+    get displaySumOfSelection() {
+        let output: any = {
+            price: 0,
+            socketList: {},
+            badSocketList: {},
+            propertyList: {},
+        };
+
+
+        this.selectedAccList.forEach(val => {
+            output.price += val.price;
+            if(output.socketList[val.socket1.name]) {
+                output.socketList[val.socket1.name] += val.socket1.number;
+            }else {
+                output.socketList[val.socket1.name] =  val.socket1.number;
+            }
+            
+            if(output.socketList[val.socket2.name]) {
+                output.socketList[val.socket2.name] += val.socket2.number;
+            }else {
+                output.socketList[val.socket2.name] = val.socket2.number;
+            }
+            
+            if(output.badSocketList[val.badSocket1.name]) {
+                output.badSocketList[val.badSocket1.name] += val.badSocket1.number;
+            }else {
+                output.badSocketList[val.badSocket1.name] = val.badSocket1.number;
+            }
+
+            if(output.propertyList[val.property1.name]) {
+                output.propertyList[val.property1.name] += val.property1.number;
+            }else {
+                output.propertyList[val.property1.name] = val.property1.number;
+            }
+            if(val.property2.number) {
+                if(output.propertyList[val.property2.name]) {
+                    output.propertyList[val.property2.name] += val.property2.number;
+                }else {
+                    output.propertyList[val.property2.name] = val.property2.number;
+                }
+            }
+        })
+
+        return output;
     }
 
     created() {
@@ -485,6 +573,17 @@ $data-padding: 4px;
                     }
                 }
             }
+        }
+        .temp-list {
+            font-size: 0.75rem;
+
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-auto-flow: column;
+
+        }
+        .sum{
+            // font-size: 14px;
         }
     }
 }
