@@ -65,7 +65,7 @@ export default class LifeSearchService extends Vue {
         cheer('tbody tr').each((i, el) => {
             // console.log(cheer(el).find('div.grade')[0])
             let name = (cheer(el).find('span.name')[0].children[0] as any).data;
-            let count = Number((cheer(el).find('span.count em')[0].children[0] as any).data.match(/(\d+)/)[0]);
+            let count = Number((cheer(el).find('span.count em')[0].children[0] as any).data.match(/\d/g).join(''));
             let grade = Number(cheer(el).find('div.grade')[0].attribs['data-grade']);
             // let grade = 0;
             let avgLastDay = Number((cheer(el).find('div.price em')[0].children[0] as any).data);
