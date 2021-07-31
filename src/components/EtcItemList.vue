@@ -7,14 +7,12 @@
                 <div>전일 평균</div>
                 <div>마지막 거래</div>
                 <div>최저가</div>
-                <div>단위</div>
             </div>
             <div class="content-row" v-for="item of lifeData" :key="item.name">
                 <ItemName class="name" :grade="item.grade">{{item.name}}</ItemName>
                 <div class="avgLastDay">{{item.avgLastDay}}💰</div>
                 <div class="lastPrice">{{item.lastPrice}}💰</div>
                 <div class="price">{{item.price}}💰</div>
-                <div class="count" v-if="item.pricePerCount">{{item.count}}개 (개당 {{item.pricePerCount}}💰)</div>
             </div>
         </div>
     </div>
@@ -32,7 +30,7 @@ import {LifeItemData} from '../service/LifeSearchService.vue';
       ItemName,
   },
 })
-export default class LifeItemList extends Vue {
+export default class EtcItemList extends Vue {
     @Prop({default: ''}) readonly title!: string;
     @Prop({default: () => []}) readonly lifeData!: LifeItemData[];
     @Prop({default: true}) readonly loading!: boolean;
@@ -59,7 +57,7 @@ export default class LifeItemList extends Vue {
     .content{
         .content-row {
             display: grid;
-            grid-template-columns: 4fr 3fr 3fr 3fr 5fr;
+            grid-template-columns: 4fr 3fr 3fr 3fr;
             align-items: center;
             padding: 0 24px;
             font-size: 14px;

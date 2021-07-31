@@ -1,8 +1,8 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/test">각인 최저가</router-link>
-      <router-link to="/trade-rate">생활 한눈에 보기</router-link>
+      <router-link to="/test">각인</router-link>
+      <router-link to="/trade-rate">제작 비용 비교</router-link>
     </div>
     <router-view />
   </div>
@@ -17,6 +17,8 @@
   text-align: center;
   color: #f1f1f1;
   background-color: #161616;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 #nav {
@@ -36,8 +38,24 @@
       color: #ffffff;
     }
     &.router-link-exact-active {
-      color: #fff018;
+      color: gold;
     }
   }
 }
+
+// common
+.font-gold { color: gold;}
+
+.font-normal { color: #b8b8b8; }
+.font-advanced { color: #6fc300; }
+.font-rare { color: #00b5ff; }
+.font-hero { color: #bf00fe; }
+.font-legend { color: #f39303; }
+.font-relics { color: #ff6000; }
+.font-mythology { color: #eee; }
+
+.font-red { color: #ff2600;}
+.font-blue { color: #008cff;}
+
+
 </style>

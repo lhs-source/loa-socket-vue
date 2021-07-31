@@ -8,45 +8,19 @@ import cheerio, { CheerioAPI } from 'cheerio';
 
 import { Component, Vue } from "vue-property-decorator";
 
-enum LIFE_CODE {
-    GATHER  = 90200,
-    TREE  = 90300,
-    STONE = 90400, 
-    HUNT  = 90500,
-    FISH  = 90600,
-    GEO   = 90700,
-}
-
 @Component({
 })
-export default class LifeSearchService extends Vue {
-    async getGatherPrice() {
-        return await this.getLifePrice(LIFE_CODE.GATHER);
-    }
-    async getTreePrice() {
-        return await this.getLifePrice(LIFE_CODE.TREE);
-    }
-    async getStonePrice() {
-        return await this.getLifePrice(LIFE_CODE.STONE);
-    }
-    async getHuntPrice() {
-        return await this.getLifePrice(LIFE_CODE.HUNT);
-    }
-    async getFishPrice() {
-        return await this.getLifePrice(LIFE_CODE.FISH);
-    }
-    async getGeoPrice() {
-        return await this.getLifePrice(LIFE_CODE.GEO);
-    }
+export default class EnforecSearchService extends Vue {
+    firstCategory = 50000;
 
-    async getLifePrice(code: number) {
+    async getOrehaPrice() {
         let param: any = {
-            firstCategory: 90000,
-            secondCategory: code,
+            firstCategory: 50000,
+            secondCategory: 50010,
             characterClass: '',
             tier: 0,
             grade: 99,
-            itemName: '',
+            itemName: '오레하',
             pageNo: 1,
             isInit: false,
             sortType: 1,
@@ -61,17 +35,16 @@ export default class LifeSearchService extends Vue {
         
         let data = res.data;
         let cheer = cheerio.load(data);
-        let output: LifeItemData[] = [];
+        let output: OrehaItemData[] = [];
         cheer('tbody tr').each((i, el) => {
             // console.log(cheer(el).find('div.grade')[0])
             let name = (cheer(el).find('span.name')[0].children[0] as any).data;
-            let count = Number((cheer(el).find('span.count em')[0].children[0] as any).data.match(/(\d+)/)[0]);
             let grade = Number(cheer(el).find('div.grade')[0].attribs['data-grade']);
             // let grade = 0;
             let avgLastDay = Number((cheer(el).find('div.price em')[0].children[0] as any).data);
             let lastPrice = Number((cheer(el).find('div.price em')[1].children[0] as any).data);
             let price = Number((cheer(el).find('div.price em')[2].children[0] as any).data);
-            let tree: LifeItemData = {
+            let tree: OrehaItemData = {
                 name: name,
                 grade: grade,
                 title: '',
@@ -79,8 +52,6 @@ export default class LifeSearchService extends Vue {
                 avgLastDay: avgLastDay,
                 lastPrice: lastPrice,
                 price: price,
-                count: count,
-                pricePerCount: price / count,
             }
             output.push(tree);
         })
@@ -89,7 +60,7 @@ export default class LifeSearchService extends Vue {
     }
 }
 
-export interface LifeItemData {
+export interface OrehaItemData {
     name: string;
     grade: number;
     title: string;
@@ -97,7 +68,5 @@ export interface LifeItemData {
     avgLastDay: number;
     lastPrice: number;
     price: number;
-    count: number;
-    pricePerCount: number;
 }
 </script>
