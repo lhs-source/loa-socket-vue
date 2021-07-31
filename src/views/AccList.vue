@@ -31,10 +31,25 @@
                 Search Now!
             </div>
             <div class="headers">
-                <div class="dummy">
-                    <div>
+                <div class="conditions">
+                    <div style="grid-column: 1/3;">
                         5, 3만 검색<input type="checkbox" v-model="fullMax"/>
                     </div>
+                    <div class="acctype">
+                        <div 
+                            v-for="type of accTypeList" 
+                            :key="type.value" 
+                            class="item" 
+                            :class="{'select' : selectedAccType === type.value ? true : false}"
+                            @click="onClickAcctype(type)">
+                            {{type.label}}
+                        </div>
+                    </div>
+                    <!-- <div>
+                        <div v-for="type of propTypeList" :key="type.value">
+                            {{type.label}}
+                        </div>
+                    </div> -->
                 </div>
                 <div class="header" v-for="sock of fixedSocket" :key="sock.id">
                     {{sock.name}}<span v-if="sock.class">({{sock.class}})</span>
@@ -44,7 +59,7 @@
                 각인을 선택해주세요
             </div>
             <div class="contents">
-                <div class="row" v-for="(row, index) of socketMetrics" :key="row">
+                <div class="row" v-for="(row, index) of dislaySocketMetrics" :key="row">
                     <div class="data name">{{fixedSocket[index].name}}<span v-if="fixedSocket[index].class">({{fixedSocket[index].class}})</span></div>
                     <div class="data" v-for="column of row" :key="column">
                         <template v-if="column === null">
@@ -57,7 +72,8 @@
                                 @click="onClickCase(cases)"> 
                                 {{cases.socket[0].name}} {{cases.socketNumber[0]}} <br /> 
                                 {{cases.socket[1].name}} {{cases.socketNumber[1]}} <br /> 
-                                <span :class="{'font-relics': cases.property === 0, 'font-legend': cases.property === 1, 'font-hero': cases.property === 2, }">{{propList[cases.property]}}</span><br />
+                                <span :class="{'font-relics': cases.property1 === 0, 'font-legend': cases.property1 === 1, 'font-hero': cases.property1 === 2, }">{{propList[cases.property1]}}</span>
+                                <span v-if="cases.acctype === 200010" style="margin-left: 4px;" :class="{'font-relics': cases.property2 === 0, 'font-legend': cases.property2 === 1, 'font-hero': cases.property2 === 2, }">{{propList[cases.property2]}}</span>({{cases.list.length}})<br />
                                 <span class="price font-gold">{{cases.price}}💰</span>
                             </div>
                         </template>
@@ -86,20 +102,69 @@ import AccSearchService, {RequestAcc, AccData} from '../service/AccSearchService
 })
 export default class AccList extends mixins(AccSearchService) {
     socketList: Socket[] = SocketList;
+    // 선택한 각인 목록
     selectedSocket: Socket[] = [];
+    // 검색한 각인 목록
     fixedSocket: Socket[] = [];
 
+    // 각인 행렬 데이터
     socketMetrics: any[] = [];
+    socketMetrics2: any[] = [];
+    socketMetrics3: any[] = [];
+
     propList = [
         '치명',
         '특화',
         '신속',
     ]
-    fullMax = true;
+    // 선택한 검색 결과
     selectedCase: any = {};
-
+    // 검색 결과를 클릭해 결과를 모두 보여주는 팝업 노출
     showSearchList = false;
+    
+    // 5, 3만 보여줄 것인가
+    fullMax = true;
+    // 장신구 타입 목록
+    accTypeList = [
+        // {
+        //     label: '전체',
+        //     value: 0,
+        // },
+        {
+            label: '목걸이',
+            value: 200010,
+        },
+        {
+            label: '귀걸이',
+            value: 200020,
+        },
+        {
+            label: '반지',
+            value: 200030,
+        },
+    ]
+    selectedAccType = 200020;
+    // 치특신
+    propTypeList = [
+        {
+            label: '치명',
+            value: 0,
+        },
+        {
+            label: '특화',
+            value: 1,
+        },
+        {
+            label: '신속',
+            value: 2,
+        },
+    ]
+    selectedPropType = 0;
 
+
+    /**
+     * * 남겨진 각인 목록
+     */
     get displayRemainSocket() {
         return this.socketList.filter(val => {
             let index = this.selectedSocket.findIndex(elem => {
@@ -108,6 +173,19 @@ export default class AccList extends mixins(AccSearchService) {
             return index < 0;
         })
     }
+    get dislaySocketMetrics() {
+        switch(this.selectedAccType){
+            case 200010:
+                return this.socketMetrics;
+            case 200020:
+                return this.socketMetrics2;
+            case 200030:
+                return this.socketMetrics3;
+            default:
+                return [];
+        }
+    }
+
     created() {
         // let param: RequestAcc = {
         //     socket1: {
@@ -141,27 +219,38 @@ export default class AccList extends mixins(AccSearchService) {
      */
     onClickSearch(){
         this.fixedSocket = [...this.selectedSocket];
-        this.socketMetrics = this.createSocketMetrics();
+        this.createSocketMetrics(this.accTypeList[0].value).then(res => {
+            this.socketMetrics = res;
+        })   // 목걸이
+        this.createSocketMetrics(this.accTypeList[1].value).then(res => {
+            this.socketMetrics2 = res;
+        })// 귀걸이
+        this.createSocketMetrics(this.accTypeList[2].value).then(res => {
+            this.socketMetrics3 = res;
+        }) // 반지
     }
     onClickCase(cases: any) {
         this.selectedCase = cases;
         this.showSearchList = true;
     }
+    onClickAcctype(type: any) {
+        this.selectedAccType = type.value;
+    }
     /**
      * *  n x n 배열부터 만든다.
      */
-    createSocketMetrics(){
+    async createSocketMetrics(acctype: number){
         let output: any[] = [];
         let size = this.selectedSocket.length;
 
         for(let i = 0; i < size; ++i){
             let row: any[] = [];
             for(let j = 0; j < size; ++j){
-                row.push(this.createCaseMetrics([this.selectedSocket[i], this.selectedSocket[j]]));
+                row.push(this.createCaseMetrics([this.selectedSocket[i], this.selectedSocket[j]], acctype));
             }
             output.push(row);
             for(let data of row){
-                this.createResult(data);
+                this.createResult(data, acctype);
             }
         }
         console.log('metrics', output);
@@ -170,7 +259,7 @@ export default class AccList extends mixins(AccSearchService) {
     /**
      * * 그 안에서 케이스별로 나눠 
      */
-    createCaseMetrics(socket: Socket[]) {
+    createCaseMetrics(socket: Socket[], acctype: number) {
         if(socket[0].id === socket[1].id){
             return null;
         }
@@ -181,24 +270,50 @@ export default class AccList extends mixins(AccSearchService) {
         for(let i = 0; i < socketMax.length; ++i){
             let row: any[] = [];
 
-            for(let j = 0; j < propCount; ++j){
-                let sock1:Socket = socket[0];
-                let sock2:Socket = socket[1];
+            if(acctype === 200010) {
+                let cases = [
+                    [0, 1],
+                    [0, 2],
+                    [1, 2],
+                ]
+                for(let j = 0; j < propCount; ++j){
+                    let sock1:Socket = socket[0];
+                    let sock2:Socket = socket[1];
 
-                let item = {
-                    id: i * propCount + j,
-                    socket: [sock1, sock2],
-                    socketNumber: [socketMax[i], 3],
-                    property: j,
-                    price: 0,//Math.ceil(Math.random() * 10000),
-                    list: [],
+                    let item = {
+                        id: i * propCount + j,
+                        acctype: acctype,
+                        socket: [sock1, sock2],
+                        socketNumber: [socketMax[i], 3],
+                        property1: cases[j][0],
+                        property2: cases[j][1],
+                        price: 0,//Math.ceil(Math.random() * 10000),
+                        list: [],
+                    }
+                    output.push(item);
                 }
-                output.push(item);
+            } else {
+                for(let j = 0; j < propCount; ++j){
+                    let sock1:Socket = socket[0];
+                    let sock2:Socket = socket[1];
+
+                    let item = {
+                        id: i * propCount + j,
+                        acctype: acctype,
+                        socket: [sock1, sock2],
+                        socketNumber: [socketMax[i], 3],
+                        property1: j,
+                        property2: -1,
+                        price: 0,//Math.ceil(Math.random() * 10000),
+                        list: [],
+                    }
+                    output.push(item);
+                }
             }
         }
         return output;
     }
-    async createResult(conditions: any) {
+    async createResult(conditions: any, acctype: number) {
         // console.log('createResult conditions', conditions)
         if(conditions === null){
             return;
@@ -206,6 +321,7 @@ export default class AccList extends mixins(AccSearchService) {
         for(let item of conditions){
             // console.log('item', item);
             let param: RequestAcc = {
+                acctype: acctype,
                 socket1: {
                     id: item.socket[0].id,
                     number: item.socketNumber[0]
@@ -214,7 +330,12 @@ export default class AccList extends mixins(AccSearchService) {
                     id: item.socket[1].id,
                     number: item.socketNumber[1]
                 },
-                property: item.property
+                property1: item.property1,
+                property2: 0,
+            }
+            if(acctype === 200010) {
+                // 목걸이의 경우에는 
+                param.property2 = item.property2;
             }
             // console.log(param);
             this.getAccData(param).then((res: AccData[]) => {
@@ -247,6 +368,7 @@ $data-padding: 4px;
 .root-wrapper {
     display: flex;
     flex-wrap: nowrap;
+    padding-bottom: 48px;
 
     .search-list {
         padding: 24px;
@@ -297,13 +419,34 @@ $data-padding: 4px;
             display: grid;
             grid-auto-flow: column;
             align-content: start;
-            .dummy, 
+            .conditions, 
             .header {
                 font-size: 1.25rem;
                 width: $data-width;
-                height: 48px;
+                height: 96px;
                 padding: $data-padding;
                 border: 1px solid #ddd;
+            }
+            .conditions {
+                font-size: 0.75rem;
+
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: repeat(2, 1fr);
+
+                .acctype {
+                    .item{
+                        user-select: none;
+                        cursor: pointer;
+                        &:hover {
+                            font-weight: 700;
+                            color: rgb(0, 174, 255);
+                        }
+                        &.select {
+                            background-color: #888;
+                        }
+                    }
+                }
             }
         }
         .contents {

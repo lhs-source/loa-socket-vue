@@ -26,24 +26,39 @@ export default class AccSearchService extends Vue {
     
     async getData(request: RequestAcc) {
         let param: any = {};
-        let prop: number | null = 0;
-        switch(request.property){
+        let prop1: number | null = 0;
+        let prop2: number | null = 0;
+        switch(request.property1){
             case 0: // 치
-                prop = 15;
+                prop1 = 15;
                 break;
             case 1: // 특
-                prop = 16;
+                prop1 = 16;
                 break;
             case 2: // 신
-                prop = 18;
+                prop1 = 18;
                 break;
             default:
-                prop = null;
+                prop1 = null;
+                break;
+        }
+        switch(request.property2){
+            case 0: // 치
+                prop2 = 15;
+                break;
+            case 1: // 특
+                prop2 = 16;
+                break;
+            case 2: // 신
+                prop2 = 18;
+                break;
+            default:
+                prop2 = null;
                 break;
         }
 
         param['request[firstCategory]'] = 200000;
-        param['request[secondCategory]'] = ACCTYPE.RING,
+        param['request[secondCategory]'] = request.acctype,
         param['request[classNo]'] = '';
         param['request[itemTier]'] = 3;
         param['request[itemGrade]'] = 5;
@@ -67,7 +82,7 @@ export default class AccSearchService extends Vue {
         param['request[skillOptionList][2][maxValue]'] = ''; 
 
         param['request[etcOptionList][0][firstOption]'] = 2;
-        param['request[etcOptionList][0][secondOption]'] = prop;
+        param['request[etcOptionList][0][secondOption]'] = prop1;
         param['request[etcOptionList][0][minValue]'] = ''; 
         param['request[etcOptionList][0][maxValue]'] = ''; 
 
@@ -85,6 +100,14 @@ export default class AccSearchService extends Vue {
         param['request[etcOptionList][3][secondOption]'] = ''; 
         param['request[etcOptionList][3][minValue]'] = ''; 
         param['request[etcOptionList][3][maxValue]'] = ''; 
+
+        // 두번째 특성
+        if(request.acctype === ACCTYPE.NECK) {
+            param['request[etcOptionList][3][firstOption]'] = 2; 
+            param['request[etcOptionList][3][secondOption]'] = prop2; 
+            param['request[etcOptionList][3][minValue]'] = ''; 
+            param['request[etcOptionList][3][maxValue]'] = ''; 
+        }
         
         param['request[sortOption][Sort]'] = 'BUY_PRICE';
         param['request[sortOption][IsDesc]'] = true;
@@ -99,21 +122,31 @@ export default class AccSearchService extends Vue {
                 {
                     headers: {
                         // 'Content-Type' : 'application/x-www-form-urlencoded'
-                        'Origin': 'https://lostark.game.onstove.com',
-                        'Referer': 'https://lostark.game.onstove.com/Auction'
+                        // 'Origin': 'https://lostark.game.onstove.com',
+                        // 'Referer': 'https://lostark.game.onstove.com/Auction'
 
                     }
                 })
         let data = res.data;
         let cheer = cheerio.load(data);
         let output: any[] = [];
+        
+        let empty = cheer('tbody').children('tr.empty');
+        if(empty && empty.length > 0) {
+            return output;
+        }
         cheer('tbody tr').each((i, el) => {
-            let name = (cheer(el).find('span.name')[0].children[0] as any).data;
+            let name = ''
+            try {
+                name = (cheer(el).find('span.name')[0].children[0] as any).data;
+            } catch (e : any) {
+                console.log('error debug :: name', cheer(el).find('span.name')[0]);
+            }
             let count = '';
             try{
                 count = (cheer(el).find('span.count font')[0].children[0] as any).data.match(/\d/g).join('');
             }catch(e : any) {
-                count = '';
+                console.log('error debug :: count', cheer(el).find('span.count font')[0]);
             }
             let grade = Number(cheer(el).find('div.grade')[0].attribs['data-grade']);
             let socket = cheer(el).find('div.effect ul')[0];
@@ -130,22 +163,36 @@ export default class AccSearchService extends Vue {
                 number: Number((cheer(socket.children[5]).children('font')[1].children[0] as any).data.match(/\d/g).join('')),
             };
             let prop = cheer(el).find('div.effect ul')[1];
-            let property = {
+            let property1 = {
                 name: (cheer(prop.children[1]).children('font')[0].children[0] as any).data,
                 number: Number((cheer(prop.children[1]).children('font')[1].children[0] as any).data.match(/\d/g).join('')),
             };
-            let price = Number((cheer(el).find('div.price-buy em')[0].children[0] as any).data.match(/\d/g).join(''));
+            let property2 = {name:'', number: 0};
+            if(request.acctype === ACCTYPE.NECK) {
+                property2 = {
+                    name: (cheer(prop.children[3]).children('font')[0].children[0] as any).data,
+                    number: Number((cheer(prop.children[3]).children('font')[1].children[0] as any).data.match(/\d/g).join('')),
+                };
+            }
+            let price= 0;
+            try{
+                price = Number((cheer(el).find('div.price-buy em')[0].children[0] as any).data.match(/\d/g).join(''));
+            } catch(e : any) {
+                console.log('error debug :: price', cheer(el).find('div.price-buy em')[0]);
+            }
             let raw: AccData = {
                 name: name,
                 count: count,
                 grade: grade,
+                acctype: request.acctype,
                 socket1: socket1,
                 socket2: socket2,
                 badSocket1: badSocket1,
-                property: property,
+                property1: property1,
+                property2: property2,
                 price: price,
             }
-            console.log(raw);
+            // console.log(raw);
             output.push(raw);
         })
 
@@ -154,6 +201,7 @@ export default class AccSearchService extends Vue {
 }
 
 export interface RequestAcc {
+    acctype: number;
     socket1: {
         id: number;
         number: number;
@@ -162,12 +210,14 @@ export interface RequestAcc {
         id: number;
         number: number;
     }
-    property: number;
+    property1: number;
+    property2: number;
 }
 export interface AccData {
     name: string;
     count: string;
     grade: number;
+    acctype: number;
     socket1: {
         name: string;
         number: number;
@@ -180,7 +230,11 @@ export interface AccData {
         name: string;
         number: number;
     }
-    property: {
+    property1: {
+        name: string;
+        number: number;
+    }
+    property2: {
         name: string;
         number: number;
     }
