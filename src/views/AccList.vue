@@ -5,10 +5,12 @@
                 <div class="select-case" v-for="cases of selectedCase.list" :key="cases.id">
                     <div>이름 {{cases.name}}</div>
                     <div>거래가능 {{cases.count}}</div>
-                    <div>특성 {{cases.property.name}} {{cases.property.number}}</div>
+                    <div>특성1 {{cases.property1.name}} {{cases.property1.number}}</div>
+                    <div v-if="cases.property2.number">특성2 {{cases.property2.name}} {{cases.property2.number}}</div>
                     <div>각인1 {{cases.socket1.name}} {{cases.socket1.number}}</div>
                     <div>각인2 {{cases.socket2.name}} {{cases.socket2.number}}</div>
                     <div>패널티 {{cases.badSocket1.name}} {{cases.badSocket1.number}}</div>
+                    <div>가격 {{cases.price}}</div>
                 </div>
             </div>
         </SearchList>
@@ -343,7 +345,12 @@ export default class AccList extends mixins(AccSearchService) {
                 // console.log('result', res);
                 item.list = res;
                 if(res.length > 0){
-                    item.price = res[0].price;
+                    for(let price of res) {
+                        if(price.price !== 0) {
+                            item.price = price.price;
+                            break;
+                        }
+                    }
                 }else {
                     item.price = -1;
                 }

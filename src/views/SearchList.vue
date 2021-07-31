@@ -34,6 +34,7 @@ export default class SearchList extends Vue {
         background-color: #33333388;
     }
     .modal-frame {
+        overflow-y: auto;
         position: absolute;
         right: 0;
         top: 0;

@@ -110,7 +110,7 @@ export default class AccSearchService extends Vue {
         }
         
         param['request[sortOption][Sort]'] = 'BUY_PRICE';
-        param['request[sortOption][IsDesc]'] = true;
+        param['request[sortOption][IsDesc]'] = false;
         
         param['request[pageNo]'] = 1
         param['pushKey'] = '';
@@ -192,7 +192,7 @@ export default class AccSearchService extends Vue {
                 property2: property2,
                 price: price,
             }
-            // console.log(raw);
+            console.log(raw);
             output.push(raw);
         })
 
