@@ -25,6 +25,12 @@ const routes: Array<RouteConfig> = [
     component: () =>
       import(/* webpackChunkName: "about" */ "../views/GetData.vue"),
   },
+  {
+    path: "/trade-rate",
+    name: "TradeRate",
+    component: () =>
+      import(/* webpackChunkName: "about" */ "../views/TradeRate.vue"),
+  },
 ];
 
 const router = new VueRouter({
