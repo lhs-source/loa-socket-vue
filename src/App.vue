@@ -58,5 +58,10 @@
 .font-red { color: #ff2600;}
 .font-blue { color: #008cff;}
 
+// layout
+.flex-center {
+  display: flex;
+  align-items: center;
+}
 
 </style>

@@ -65,7 +65,7 @@ export default class AccSearchService extends Vue {
         param['request[itemLevelMin]'] = 0
         param['request[itemLevelMax]'] = 1600
         param['request[itemName]'] = ''; 
-        param['request[gradeQuality]'] = 50
+        param['request[gradeQuality]'] = 60
         param['request[skillOptionList][0][firstOption]'] = '';
         param['request[skillOptionList][0][secondOption]'] = '';
         param['request[skillOptionList][0][minValue]'] = '';
@@ -192,7 +192,7 @@ export default class AccSearchService extends Vue {
                 property2: property2,
                 price: price,
             }
-            console.log(raw);
+            // console.log(raw);
             output.push(raw);
         })
 

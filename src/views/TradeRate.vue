@@ -467,7 +467,7 @@ export default class TradeRate extends mixins(LifeSearchService, EnforceSearchSe
 
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
