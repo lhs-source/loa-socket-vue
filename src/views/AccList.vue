@@ -92,7 +92,7 @@
                 >({{ fixedSocket[index].class }})</span
               >
             </div>
-            <div class="data" v-for="column of row" :key="column">
+            <div class="data" v-for="(column, colIndex) of row" :key="colIndex">
               <template v-if="column === null">
                 <span
                   style="
@@ -139,11 +139,13 @@
         </div>
       </div>
     </div>
+    
     <div class="compositions">
+      <div class="search-button" @click="showAccComposition = !showAccComposition">각인 케이스 계산하기</div>
       <div class="temp-list">
         <div
           v-for="(item, index) of selectedAccList"
-          :key="item.property1.number + item.price"
+          :key="index"
           @click="onClickSelItem(index)"
         >
           <div>{{ item.name }}</div>
@@ -195,6 +197,7 @@
       </div>
 
       <AccComposition
+        v-if="showAccComposition"
         :socketList="fixedSocket"
         :nectMetricsData="socketMetrics"
         :earringMetricsData="socketMetrics2"
@@ -287,6 +290,9 @@ export default class AccList extends mixins(AccSearchService) {
 
   // 고른 악세서리 목록
   selectedAccList: AccData[] = [];
+
+  // 조합 목록 확인하기
+  showAccComposition = false;
 
   /**
    * * 남겨진 각인 목록
@@ -523,20 +529,21 @@ export default class AccList extends mixins(AccSearchService) {
         param.property2 = item.property2;
       }
       // console.log(param);
-      // this.getAccData(param).then((res: AccData[]) => {
-      //   // console.log('result', res);
-      //   item.list = res;
-      //   if (res.length > 0) {
-      //     for (let price of res) {
-      //       if (price.price !== 0) {
-      //         item.price = price.price;
-      //         break;
-      //       }
-      //     }
-      //   } else {
-      //     item.price = -1;
-      //   }
-      // });
+      // 데이터 가져오는 거 끄려면 임시 주석
+      this.getAccData(param).then((res: AccData[]) => {
+        // console.log('result', res);
+        item.list = res;
+        if (res.length > 0) {
+          for (let price of res) {
+            if (price.price !== 0) {
+              item.price = price.price;
+              break;
+            }
+          }
+        } else {
+          item.price = -1;
+        }
+      });
     }
   }
 
@@ -664,6 +671,14 @@ $data-padding: 4px;
         }
       }
     }
+  }
+  .search-button {
+    padding: 24px;
+    background-color: rgb(255, 187, 0);
+    color: #333;
+    font-size: 1.25rem;
+    font-weight: 700;
+
   }
   .compositions {
     .temp-list {

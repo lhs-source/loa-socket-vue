@@ -18,24 +18,44 @@
     </div>
     <div class="socket-desposition">
       <div></div>
-      <div class="row" v-for="row of displayDesposition" :key="row">
+      <div class="row" v-for="(row, rowIndex) of displayDesposition" :key="rowIndex">
         <span></span>
-        <span class="able-socket" v-for="comp of row" :key="comp">
+        <span class="able-socket" v-for="(comp, compIndex) of row" :key="compIndex">
           {{comp}}
         </span>
       </div>
     </div>
     <div class="socket-cases">
       <h3>최종 각인 케이스 목록</h3>
-      <div class="comp" v-for="cases of allAccComposition" :key="cases">
-        <div class="cases" v-for="(row, caseIndex) of cases" :key="row">
+      <div class="search-button" @click="onClickCalcPrice">가격 계산하기</div>
+      <div class="comp" v-for="(comp, compIndex) of allAccComposition" :key="compIndex">
+        <div class="cases" v-for="(cases, caseIndex) of comp" :key="caseIndex">
           <h4>케이스 {{caseIndex}}번</h4>
-          <div class="row" v-for="(mid, accIndex) of row" :key="mid">
+          <div class="row" v-for="(row, accIndex) of cases.accSocketList" :key="accIndex">
             <span class="label" style="font-weight: 700; font-size: 1.25rem;">악세 {{accIndex}}.</span>
-            <span class="value" v-for="value of mid" :key="value">
+            <span class="value" v-for="value of row" :key="value">
               <span v-if="value > 0">{{value}}</span>
+              <span v-else>-</span>
+            </span>
+            <span class="item"> 
+              {{cases.accStr[accIndex]}}
             </span>
           </div>
+          <div v-if="caseIndex === 0">
+            <div v-for="(item, itemIndex) of testAllData" :key="itemIndex"
+              style="display: grid; grid-template-colums: 1fr 1fr 1fr; grid-auto-flow: column;">
+              <div>{{item[1].price}}</div>
+              <div>{{item[1].penalty}}</div>
+              <div>{{item[1].property}}</div>
+            </div>
+          </div>
+          <!-- {{cases.accCompositions.length}} -->
+          <!-- <div v-for="(item, itemIndex) of cases.accCompositions" :key="itemIndex"
+            style="display: grid; grid-template-colums: 1fr 1fr 1fr;">
+            <div>{{item[1].price}}</div>
+            <div>{{item[1].penalty}}</div>
+            <div>{{item[1].property}}</div>
+          </div> -->
         </div>
       </div>
     </div>
@@ -43,9 +63,21 @@
 </template>
 
 <script lang="ts">
+/**
+ * TODO 1. 아이템 개수가 하나라도 0인 경우 제외
+ * TODO 2. 지금 치특만 계산함 ㅠㅠㅠㅠ
+ */
+import { AccData } from "@/service/AccSearchService.vue";
 import { Component, Vue, Prop } from "vue-property-decorator";
 
 import { Socket } from "../constants/SocketList";
+
+interface Cases {
+  accSocketList: any[],
+  accList: any[],//items.map((item, index) => this.getAcc(index, item)),
+  accStr: string,
+  accCompositions: any[], // this.getFinalComposition(items), TODO 다른 함수에서 한번에 ㄱㄱ
+}
 
 @Component
 export default class AccComposition extends Vue {
@@ -53,6 +85,9 @@ export default class AccComposition extends Vue {
   @Prop({ default: () => [] }) readonly nectMetricsData!: any[];
   @Prop({ default: () => [] }) readonly earringMetricsData!: any[];
   @Prop({ default: () => [] }) readonly ringMetricsData!: any[];
+
+  testAllData: any[] = [];
+  maxPrice = 60000;
 
   get calcSocketList() {
     interface Item {
@@ -215,9 +250,6 @@ export default class AccComposition extends Vue {
       if(maxcount === 5){
         return ;
       }
-      // let removeDuplicate = sourceList.map((val: number[]) => {
-      //   return [...new Set(val)];
-      // })
       let step = [...new Set(sourceList[maxcount]), 0];
       // console.log(maxcount, step, makeList);
       step.forEach((val:any) => {
@@ -247,10 +279,6 @@ export default class AccComposition extends Vue {
           if(sumOfThree === 0) {
             return [];
           }
-          // TODO 8 이하여도 탈락(합이 40이어야 함)
-          // if(sumOfSocket < 8) {
-          //   return;
-          // }
           output.push(newMakeList);
           return;
         }
@@ -262,14 +290,20 @@ export default class AccComposition extends Vue {
       // row 리스트 획득
       rowRecursive(sourceList, 0, [], rowOutput)
       
-      console.log('index : ', index, ' sourceList [', sourceList.join('],['), '] targetList', targetList.join(' '));
-      console.log('rowOutput : ', rowOutput.join('\n'));
+      // console.log('index : ', index, ' sourceList [', sourceList.join('],['), '] targetList', targetList.join(' '));
+      // console.log('rowOutput : ', rowOutput.join('\n'));
 
       rowOutput.forEach((val: any[]) => {
         // 마지막 악세서리일 때
         if(index === 4) {
-          console.log('last', index, '=>', [...targetList, val].join(' - '));
-          finalOutput.push([...targetList, val]);
+          let items = [...targetList, val];
+          // console.log('last', index, '=>', items.join(' - '));
+          finalOutput.push({
+            accSocketList: items,
+            accStr: items.map((item, index) => this.getAcc(index, item)),
+            accList: this.getAcc2(items),//items.map((item, index) => this.getAcc(index, item)),
+            accCompositions: [], // this.getFinalComposition(items), TODO 다른 함수에서 한번에 ㄱㄱ
+          });
           return;
         }
         // 리스트에서 제거한 새로운 리스트 생성
@@ -283,12 +317,235 @@ export default class AccComposition extends Vue {
         // 리스트에서 제거한 후 다음 depth 순환
         createAcc(newSourceList, index + 1, [...targetList, val], result);
       })
-
       return rowOutput;
     }
     createAcc(list, 0, [], finalOutput);
-    console.log('final', finalOutput);
+    // console.log('final', finalOutput);
     return finalOutput;
+  }
+
+  getAcc(accindex: number, sock: number[]) {
+    let sock1 = -1;
+    let sock2 = -1;
+    let output: any = [];
+
+    for(let i = 0; i < sock.length; ++i) {
+      if(sock[i] !== 0){
+        if(sock1 === -1){
+          sock1 = i;
+        } else {
+          sock2 = i;
+        }
+      }
+    }
+    // console.log(sock, sock1, sock2);
+    let item: any = {};
+    let socket: Socket[] = [];
+    let socketNumber: number[] = [];
+    switch(accindex){
+      case 0:
+        // neckless
+        item = this.nectMetricsData[sock1][sock2][0];
+        socket = item.socket;
+        socketNumber = item.socketNumber;
+        output = `목걸이📿  ${socket[0].name}.${socketNumber[0]}, ${socket[1].name}.${socketNumber[1]} - ${item.price}💰(${item.list.length})`;
+        break;
+      case 1:
+      case 2:
+        // earring
+        item = this.earringMetricsData[sock1][sock2][0];
+        socket = item.socket;
+        socketNumber = item.socketNumber;
+        socketNumber = this.earringMetricsData[sock1][sock2][0].socketNumber;
+        output = `귀걸이💄  ${socket[0].name}.${socketNumber[0]}, ${socket[1].name}.${socketNumber[1]} - ${item.price}💰(${item.list.length})`;
+        break;
+      case 3:
+      case 4:
+        // ring
+        item = this.ringMetricsData[sock1][sock2][0];
+        socket = item.socket;
+        socketNumber = item.socketNumber;
+        socketNumber = this.ringMetricsData[sock1][sock2][0].socketNumber;
+        output = `반지💍  ${socket[0].name}.${socketNumber[0]}, ${socket[1].name}.${socketNumber[1]} - ${item.price}💰(${item.list.length})`;
+        break;
+    }
+    return output;
+  }
+
+  getAcc2(sockets: any[]) {
+    let itemList = sockets.map((sock: number[], sockIndex: number) => {
+      // 악세별로 돌아가면서 
+      let sock1 = -1;
+      let sock2 = -1;
+      let output: any = [];
+
+      for(let i = 0; i < sock.length; ++i) {
+        if(sock[i] !== 0){
+          if(sock1 === -1){
+            sock1 = i;
+          } else {
+            sock2 = i;
+          }
+        }
+      }
+      // console.log(sock);
+
+      let item: any = {};
+      let socket: Socket[] = [];
+      let socketNumber: number[] = [];
+      switch(sockIndex){
+        case 0:
+          // neckless
+          item = this.nectMetricsData[sock1][sock2];
+          break;
+        case 1:
+        case 2:
+          // earring
+          item = this.earringMetricsData[sock1][sock2];
+          break;
+        case 3:
+        case 4:
+          // ring
+          item = this.ringMetricsData[sock1][sock2];
+          break;
+      }
+      return item;
+    });
+    return itemList;
+  }
+
+  getFinalComposition(itemList: any[]) {
+    // 장신구 목록
+    interface SumDataModel {
+      price: number;
+      sockets: any;
+      penalty: any;
+      property: any;
+    }
+    
+    // 치특신 모두 합한 거
+    let allItemList: any[] = [];
+    for(let i = 0; i < itemList.length; ++i){
+      let sum = [];
+      sum.push(...itemList[i][0].list);
+      sum.push(...itemList[i][1].list);
+      sum.push(...itemList[i][2].list);
+      allItemList.push(sum);
+    }
+    console.log(allItemList);
+    let allOfFinal: any[] = [];    
+    let recursive = (sourceList: any[], depth: number, makeList: AccData[], sumData: SumDataModel) => {
+      let listUp: any = sourceList[depth];
+      // console.log(sourceList, depth, listUp.list);
+      listUp.forEach((item : AccData) => {
+        // 악세 종류 하나의 list 중 아이템 하나임!
+        // 특성을 모두 합쳐서 sum 에 담기
+        if(!item.price || item.price < 0) {
+          return;
+        }
+        let perSumData: SumDataModel = {
+          price: sumData.price + item.price,
+          sockets: {...sumData.sockets},
+          penalty: {...sumData.penalty}, 
+          property: {...sumData.property},
+        }
+        if(!perSumData.price || perSumData.price > this.maxPrice) {
+          return;
+        }
+        // 소켓
+        let socket1 = perSumData.sockets[item.socket1.name];
+        if(socket1){
+          perSumData.sockets[item.socket1.name] += item.socket1.number;
+        }else {
+          perSumData.sockets[item.socket1.name] = item.socket1.number;
+        }
+        
+        let socket2 = perSumData.sockets[item.socket2.name];
+        if(socket2){
+          perSumData.sockets[item.socket2.name] += item.socket2.number;
+        }else {
+          perSumData.sockets[item.socket2.name] = item.socket2.number;
+        }
+        // console.log(perSumData.sockets, perSumData.sockets[item.socket1.name], item.socket1.number, perSumData.sockets[item.socket2.name], item.socket2.number)
+
+        // 패널티
+        let penalty = perSumData.penalty[item.badSocket1.name];
+        if(penalty){
+          perSumData.penalty[item.badSocket1.name] += item.badSocket1.number;
+        }else {
+          perSumData.penalty[item.badSocket1.name] = item.badSocket1.number;
+        }
+        
+        // console.log(perSumData.penalty)
+        let stop = false;
+        for(let key of Object.keys(perSumData.penalty)){
+          if(perSumData.penalty[key] > 4) {
+            stop = true;
+            break;
+          }
+        }
+        if(stop === true) {
+          return;
+        }
+        
+        // 특성
+        let prop1 = perSumData.property[item.property1.name];
+        if(prop1){
+          perSumData.property[item.property1.name] += item.property1.number;
+        }else {
+          perSumData.property[item.property1.name] = item.property1.number;
+        }
+        
+        let prop2 = perSumData.property[item.property2.name];
+        if(prop2){
+          perSumData.property[item.property2.name] += item.property2.number;
+        }else {
+          perSumData.property[item.property2.name] = item.property2.number;
+        }
+        
+        // stop = false;
+        // for(let key of Object.keys(perSumData.property)){
+        //   if(perSumData.property[key] > 1200) {
+        //     stop = true;
+        //     break;
+        //   }
+        // }
+        // if(stop === true) {
+        //   return;
+        // }
+
+        let newMakeList = [...makeList, item];
+        if(depth + 1 >= 5) {
+          console.log(newMakeList, perSumData);
+          if(perSumData.price > this.maxPrice) {
+            return;
+          }
+          allOfFinal.push([newMakeList, perSumData]);
+          this.testAllData.push([newMakeList, perSumData]);
+          return;
+        } 
+
+        recursive(sourceList, depth + 1, newMakeList, perSumData);
+      });
+    }
+    recursive(allItemList, 0, [], {price: 0, sockets: [], penalty: [], property: []});
+
+    return allOfFinal;
+  }
+
+  onClickCalcPrice() {
+    this.allAccComposition.forEach((rootComposition : any[]) => {
+      // 각인 숫자 조합 경우의 수
+      let index = 0;
+      for(let cases of rootComposition){
+        cases.accCompositions.push(...this.getFinalComposition(cases.accList));
+        ++index;
+        console.log(index);
+        if(index > 1) {
+          return
+        }
+      }
+    })
   }
 }
 </script>
@@ -319,6 +576,7 @@ export default class AccComposition extends Vue {
     }
   }
   .socket-cases{
+    width: 80%;
     .comp {
       border-top: 8px solid blue;
 
@@ -330,17 +588,34 @@ export default class AccComposition extends Vue {
         }
         .row{
           // background-color: #eee;
+          position: relative;
 
           display: grid;
           grid-template-columns: 84px repeat(5, 32px);
-          justify-content: center;
+          justify-content: start;
 
           .value {
             font-weight: 700;
+            min-width: 64px;
+          }
+          .item {
+            width: 360px;
+            text-align: right;
+
+            position:absolute;
+            right: 12px;
           }
         }
       }
     }
   }
 }
+  .search-button {
+    padding: 24px;
+    background-color: rgb(255, 187, 0);
+    color: #333;
+    font-size: 1.25rem;
+    font-weight: 700;
+
+  }
 </style>
