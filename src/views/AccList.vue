@@ -5,8 +5,8 @@
       <div class="selected">
         <div
           class="socket-row"
-          v-for="sock of selectedSocket"
-          :key="sock.id"
+          v-for="(sock, sockIndex) of selectedSocket"
+          :key="sockIndex"
           @click="onClickSocket(sock)"
         >
           {{ sock.name }}<span v-if="sock.class">({{ sock.class }})</span>
@@ -15,8 +15,8 @@
       <div class="remain-list">
         <div
           class="socket-row"
-          v-for="sock of displayRemainSocket"
-          :key="sock.id"
+          v-for="(sock, sockIndex) of displayRemainSocket"
+          :key="sockIndex"
           @click="onClickRemainSocket(sock)"
         >
           {{ sock.name }}<span v-if="sock.class">({{ sock.class }})</span>
@@ -30,8 +30,8 @@
         <div class="search-list" v-if="selectedCase">
           <div
             class="select-case"
-            v-for="cases of selectedCase.list"
-            :key="cases.id"
+            v-for="(cases, caseIndex) of selectedCase.list"
+            :key="caseIndex"
             @click="selectedAccList.push(cases)"
           >
             <div>{{ cases.name }}</div>
@@ -52,7 +52,7 @@
         </div>
       </SearchList>
 
-      <div class="search" @click="onClickSearch">Search Now!</div>
+      <div class="search" @click="onClickSearch">데이터 가져오기</div>
       <div
         style="display: flex; align-items: flex-start; flex-direction: column"
       >
@@ -84,7 +84,7 @@
           <div
             class="row"
             v-for="(row, index) of dislaySocketMetrics"
-            :key="row"
+            :key="index"
           >
             <div class="data name">
               {{ fixedSocket[index].name
@@ -141,8 +141,8 @@
     </div>
     
     <div class="compositions">
-      <div class="search-button" @click="showAccComposition = !showAccComposition">각인 케이스 계산하기</div>
-      <div class="temp-list">
+      <!-- <div class="search-button" @click="showAccComposition = !showAccComposition">각인 케이스 계산하기</div> -->
+      <!-- <div class="temp-list">
         <div
           v-for="(item, index) of selectedAccList"
           :key="index"
@@ -194,10 +194,10 @@
             {{ prop }} - {{ displaySumOfSelection.propertyList[prop] }}
           </div>
         </div>
-      </div>
+      </div> -->
 
       <AccComposition
-        v-if="showAccComposition"
+        style="margin-top: 48px"
         :socketList="fixedSocket"
         :nectMetricsData="socketMetrics"
         :earringMetricsData="socketMetrics2"

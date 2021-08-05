@@ -1,35 +1,70 @@
 <template>
+<div class="acccomp-root">
   <div class="acccomp-wrapper">
     <div class="socket-list">
-      <div>
-        <div>각인명</div>
-        <div>필요한 각인 수치</div>
-        <div>세공</div>
-        <div>각인서</div>
-        <div>채워야 할 각인 수치</div>
-      </div>
-      <div v-for="calcsock of calcSocketList" :key="calcsock.id">
+      <div v-for="(calcsock, index) of calcSocketList" :key="index" style="flex: 1;">
         <div>{{ calcsock.socket.name }}</div>
-        <div>{{ calcsock.need }}</div>
-        <div>{{ calcsock.stone }}</div>
-        <div>{{ calcsock.doc }}</div>
         <div class="font-relics">{{ calcsock.remain }}</div>
+      </div>
+    </div>
+    <div class="conditions">
+      <div class="manual-inputs">
+        <div v-for="index of socketLength" :key ="index" style="flex: 1;">
+          <div>
+            <input v-model="need[index - 1]" />
+            <input v-model="stone[index - 1]" />
+            <input v-model="doc[index - 1]" />
+          </div>
+        </div>
+      </div>
+      <div class="prop-inputs">
+        <div>
+          <label>가격 제한</label>
+          <input type="number" v-model="maxPrice" />
+        </div>
+        <div>
+          <label>치명</label>
+          <input type="number" v-model="props['[치명]']" />
+        </div>
+        <div>
+          <label>특화</label>
+          <input type="number" v-model="props['[특화]']" />
+        </div>
+        <div>
+          <label>신속</label>
+          <input type="number" v-model="props['[신속]']" />
+        </div>
+        <div>
+          <label>유물??</label>
+          <input type="checkbox" v-model="isRelics" />
+        </div>
+        <div>
+          <label>돌 패널티</label>
+          <select v-model="selectedPenalty.name" style="width: 200px;">
+            <option value="[공격속도 감소]">[공격속도 감소]</option>
+            <option value="[이동속도 감소]">[이동속도 감소]</option>
+            <option value="[방어력 감소]">[방어력 감소]</option>
+            <option value="[공격력 감소]">[공격력 감소]</option>
+          </select>
+          <input type="number" v-model="selectedPenalty.number" />
+        </div>
       </div>
     </div>
     <div class="socket-desposition">
       <div></div>
       <div class="row" v-for="(row, rowIndex) of displayDesposition" :key="rowIndex">
         <span></span>
-        <span class="able-socket" v-for="(comp, compIndex) of row" :key="compIndex">
+        <span class="able-socket" v-for="(comp, compIndex) of row" :key="compIndex + 10">
           {{comp}}
         </span>
       </div>
     </div>
+    <div class="search-button" @click="getAllAccComposition">조합 케이스 계산하기</div>
     <div class="socket-cases">
       <h3>최종 각인 케이스 목록</h3>
-      <div class="search-button" @click="onClickCalcPrice">가격 계산하기</div>
       <div class="comp" v-for="(comp, compIndex) of allAccComposition" :key="compIndex">
-        <div class="cases" v-for="(cases, caseIndex) of comp" :key="caseIndex">
+        {{comp.length}};
+        <!-- <div class="cases" v-for="(cases, caseIndex) of comp" :key="caseIndex">
           <h4>케이스 {{caseIndex}}번</h4>
           <div class="row" v-for="(row, accIndex) of cases.accSocketList" :key="accIndex">
             <span class="label" style="font-weight: 700; font-size: 1.25rem;">악세 {{accIndex}}.</span>
@@ -40,15 +75,7 @@
             <span class="item"> 
               {{cases.accStr[accIndex]}}
             </span>
-          </div>
-          <div v-if="caseIndex === 0">
-            <div v-for="(item, itemIndex) of testAllData" :key="itemIndex"
-              style="display: grid; grid-template-colums: 1fr 1fr 1fr; grid-auto-flow: column;">
-              <div>{{item[1].price}}</div>
-              <div>{{item[1].penalty}}</div>
-              <div>{{item[1].property}}</div>
-            </div>
-          </div>
+          </div> -->
           <!-- {{cases.accCompositions.length}} -->
           <!-- <div v-for="(item, itemIndex) of cases.accCompositions" :key="itemIndex"
             style="display: grid; grid-template-colums: 1fr 1fr 1fr;">
@@ -56,21 +83,31 @@
             <div>{{item[1].penalty}}</div>
             <div>{{item[1].property}}</div>
           </div> -->
-        </div>
+        <!-- </div> -->
       </div>
     </div>
   </div>
+  <div class="final-data">
+    <div class="search-button" @click="onClickCalcPrice">가격 계산하기</div>
+    <div v-if="calculating">계산 중... {{progressing}}</div>
+    <div v-else>계산 결과 {{testAllData.length}}개</div>
+    <div v-if="testAllData.length > dataLimit">
+      데이터가 너무 많아요 조건을 다시 설정해주세요
+    </div>
+    <div v-else>
+      <ItemPropInfo v-for="(item, itemIndex) of displayFinalAllData" :key="itemIndex" :itemData="item">
+      </ItemPropInfo>
+    </div>
+  </div>
+</div>
 </template>
 
 <script lang="ts">
-/**
- * TODO 1. 아이템 개수가 하나라도 0인 경우 제외
- * TODO 2. 지금 치특만 계산함 ㅠㅠㅠㅠ
- */
 import { AccData } from "@/service/AccSearchService.vue";
 import { Component, Vue, Prop } from "vue-property-decorator";
 
 import { Socket } from "../constants/SocketList";
+import ItemPropInfo from "../components/ItemPropInfo.vue";
 
 interface Cases {
   accSocketList: any[],
@@ -79,51 +116,99 @@ interface Cases {
   accCompositions: any[], // this.getFinalComposition(items), TODO 다른 함수에서 한번에 ㄱㄱ
 }
 
-@Component
+@Component({
+  components: {
+    ItemPropInfo
+  }
+})
 export default class AccComposition extends Vue {
   @Prop({ default: () => [] }) readonly socketList!: any[];
   @Prop({ default: () => [] }) readonly nectMetricsData!: any[];
   @Prop({ default: () => [] }) readonly earringMetricsData!: any[];
   @Prop({ default: () => [] }) readonly ringMetricsData!: any[];
 
+  allAccComposition: any[] = [];
   testAllData: any[] = [];
-  maxPrice = 60000;
+  // 가격
+  maxPrice = 38000;
+  props = {
+    '[치명]': 430,
+    '[특화]': 430,
+    '[신속]': 900,
+  }
+  calculating = false;
+  need = [15, 15, 15, 15, 15];
+  stone = [7, 0, 0, 7, 0];
+  doc = [0, 0, 9, 0, 12];
 
+  // 계산 중...
+  progressing = 0;
+  // 데이터가 일정 개수 이상 넘어가면 결과가 많으니 다시 조건을 설정하자.
+  dataLimit = 2000;
+  tooMuchData = false;
+  // 유물인가? 
+  isRelics = true;
+  // 장신구 개수
+  accCount = 5;
+  // 패널티 선택
+  selectedPenalty = {
+    name: '',
+    number: 0,
+  };
+
+  
+
+  /**
+   * * 각인 개수
+   */
+  get socketLength() {
+    return this.socketList.length;
+  }
   get calcSocketList() {
     interface Item {
       id: number;
       socket: Socket;
-      need: number;
-      stone: number;
-      doc: number;
       remain: number;
     }
-    let need = [15, 15, 15, 15, 15];
-    let stone = [7, 7, 0, 0, 0];
-    let doc = [0, 0, 0, 9, 12];
 
     let output = this.socketList.map((val: Socket, i: number) => {
       console.log("AccComposition:calcSocketList", val, i);
       let item: Item = {
         id: i,
         socket: val,
-        need: need[i],
-        stone: stone[i],
-        doc: doc[i],
-        remain: need[i] - stone[i] - doc[i],
+        remain: this.need[i] - this.stone[i] - this.doc[i],
       };
       return item;
     });
     return output;
   }
 
+  /**
+   * * price로 정렬 표시
+   */
+  get displayFinalAllData() {
+    return this.testAllData.sort((a, b) => {
+      return a[1].price > b[1].price ? 1 : -1;
+    })
+  }
+
+  /**
+   * * 합분해 실시간 계산
+   */
   get displayDesposition() {
     // 필요한 각인들 [8, 8, 15, 6, 3]...
     let remainSocket: number[] = this.calcSocketList.map(val => val.remain);
     let desposition: any[] = [];
     let sumOfSocket = 0;
     remainSocket.forEach(val => sumOfSocket += val);
-    let useList: number[] = sumOfSocket >= 40 ? [5, 3] : [5, 4, 3]; 
+    let useList: number[] = [];
+    if(this.isRelics){
+      // 유물이면 3, 4, 5
+      useList = sumOfSocket >= 40 ? [5, 3] : [5, 4, 3];
+    }else {
+      // 전설이면 2, 3
+      useList = [2, 3];
+    }
 
     // 합분해 구하기
     remainSocket.forEach((val) => {
@@ -131,39 +216,26 @@ export default class AccComposition extends Vue {
       desposition.push(comp);
     });
 
+    console.log(desposition);
+
     let despComposition: any[] = this.getDespComposition(desposition, sumOfSocket);
     return despComposition;
   }
 
-  get allAccComposition() {
-    let output: any[] = [];
+  async getAllAccComposition() {
+    this.allAccComposition = [];
     this.displayDesposition.forEach(val => {
-      output.push(this.getAllCases(val, 5, 2));
+      this.allAccComposition.push(this.getAllCases(val, 5, 2));
     })
-    return output;
+    // return this.allAccComposition;
   }
 
   /**
-   * 숫자 합분해를 찾아낸다
+   * * 숫자 합분해를 찾아낸다
    * @param {number} num 합분해 대상 숫자 (15)
    * @param {number[]} list 합분해 요소 숫자 리스트 ([5, 3])
    */
   getDesposition(num: number, list: number[]): any[] {
-    let arr: number[] = new Array(num);
-    arr.fill(0, 0, num);
-
-    // + 8 +
-    // 5
-    //   5 - 5 (x)
-    //   5 - 4 (x)
-    //   5 - 3 (o)
-    // 4
-    //   4 - 4 (o)
-    //   4 - 3 (x)
-    // 3
-    //   3 (x)
-
-    // [[5, 3], [4, 4]]
     let output: any[] = [];
     let recurrsive = (
       remain: number,
@@ -171,25 +243,23 @@ export default class AccComposition extends Vue {
       makeList: number[],
       maxcount: number
     ) => {
-      if (maxcount > 5) {
+      // 장신구 개수 넘어가면 ㄴㄴ
+      if (maxcount > this.accCount) {
         return null;
       }
-      // console.log(`count : ${maxcount}, remain: ${remain}, useList: ${useList}, makeList: ${makeList}`,)
       for (let use of useList) {
         // 이전 숫자보다 크면
         if (makeList && use > makeList[makeList.length - 1]) {
           continue;
         }
-
         let nextRemain = remain - use;
-        // console.log(`${remain} - ${use} = ${nextRemain}`);
 
         if (nextRemain > 0) {
           // 숫자가 부족함
           recurrsive(
             nextRemain,
             useList,
-            maxcount === 0 ? [use] : [...makeList, use],
+            [...makeList, use],
             maxcount + 1
           );
         } else if (nextRemain === 0) {
@@ -205,29 +275,42 @@ export default class AccComposition extends Vue {
     recurrsive(num, list, [], 0);
     return output;
   }
+  /**
+   * * 가능한 합분해 조합 구하기
+   */
   getDespComposition(desposition: any[], socketSum: number) {
-    // 가능한 합분해 조합 구하기
+    
     let composition: any[] = [];
     let ableComp: any[] = [];
+
+    if(!desposition || desposition.length <= 0) {
+      return ableComp;
+    }
     let recursive = (remain : number, maxcount: number, makeList: any[]) => {
-      if(maxcount > 5) {
+      console.log(maxcount, desposition.length)
+      if(maxcount >= desposition.length) {
         return;
+      }
+      console.log(desposition[maxcount].length)
+      if(desposition[maxcount].length === 0) {
+        recursive(remain, maxcount + 1, makeList);
+        // return;
       }
       for(let i = 0; i < desposition[maxcount].length; ++i) {
         let target = desposition[maxcount][i];
         let nextRemain = remain - target.length;
 
-        if(maxcount < 4 && nextRemain <= 0) {
+        if(maxcount < desposition.length - 1 && nextRemain <= 0) {
           continue;
         }
-        if(maxcount === 4 && nextRemain === 0) {
+        if(maxcount === desposition.length - 1 && nextRemain === 0) {
           let sum = 0;
           [...makeList, target].forEach((val2: number[]) => {
             let innerSum = 0;
             val2.forEach((val3 : number) => innerSum += val3);
             sum += innerSum;
           });
-          // console.log(this.remainSocketSum, sum)
+          console.log(socketSum, sum)
           if(socketSum <= sum){
             ableComp.push([...makeList, target]);
           }
@@ -247,7 +330,7 @@ export default class AccComposition extends Vue {
    */
   getAllCases(list: any[], accNumber: number, valueNumber: number) {
     let rowRecursive = (sourceList: any[], maxcount: number, makeList: number[], output: any[]) => {
-      if(maxcount === 5){
+      if(maxcount >= this.accCount){
         return ;
       }
       let step = [...new Set(sourceList[maxcount]), 0];
@@ -263,8 +346,12 @@ export default class AccComposition extends Vue {
         let sumOfSocket = 0;
         newMakeList.forEach(val => {sumOfSocket += val});
 
-        // 각인 합이 8 넘어가면 중단
-        if(sumOfSocket > 8) {
+        // 유물 각인 합이 8 넘어가면 중단
+        if(this.isRelics === true && sumOfSocket > 8) {
+          return [];
+        }
+        // 전설 각인 합이 8 넘어가면 중단
+        else if(this.isRelics === false && sumOfSocket > 6) {
           return [];
         }
         // n개까지 고르지 않았으니 계속 진행
@@ -421,6 +508,7 @@ export default class AccComposition extends Vue {
       sockets: any;
       penalty: any;
       property: any;
+      propertySum: number;
     }
     
     // 치특신 모두 합한 거
@@ -432,12 +520,19 @@ export default class AccComposition extends Vue {
       sum.push(...itemList[i][2].list);
       allItemList.push(sum);
     }
-    console.log(allItemList);
-    let allOfFinal: any[] = [];    
+    // console.log(allItemList);
+    let allOfFinal: any[] = [];   
+    let propSum = Number(this.props['[치명]']) + Number(this.props['[특화]']) + Number(this.props['[신속]']); 
     let recursive = (sourceList: any[], depth: number, makeList: AccData[], sumData: SumDataModel) => {
       let listUp: any = sourceList[depth];
       // console.log(sourceList, depth, listUp.list);
+      if(this.tooMuchData === true) {
+        return;
+      }
       listUp.forEach((item : AccData) => {
+        if(this.tooMuchData === true) {
+          return;
+        }
         // 악세 종류 하나의 list 중 아이템 하나임!
         // 특성을 모두 합쳐서 sum 에 담기
         if(!item.price || item.price < 0) {
@@ -448,6 +543,7 @@ export default class AccComposition extends Vue {
           sockets: {...sumData.sockets},
           penalty: {...sumData.penalty}, 
           property: {...sumData.property},
+          propertySum: sumData.propertySum,
         }
         if(!perSumData.price || perSumData.price > this.maxPrice) {
           return;
@@ -502,6 +598,19 @@ export default class AccComposition extends Vue {
         }else {
           perSumData.property[item.property2.name] = item.property2.number;
         }
+
+        if(perSumData.property['[신속]'] 
+          && perSumData.property['[신속]'] > Number(this.props['[신속]']) + 100) {
+          return;
+        }
+        if(perSumData.property['[치명]'] 
+          && perSumData.property['[치명]'] > Number(this.props['[치명]']) + 100) {
+          return;
+        }
+        if(perSumData.property['[특화]'] 
+          && perSumData.property['[특화]'] > Number(this.props['[특화]']) + 100) {
+          return;
+        }
         
         // stop = false;
         // for(let key of Object.keys(perSumData.property)){
@@ -516,41 +625,108 @@ export default class AccComposition extends Vue {
 
         let newMakeList = [...makeList, item];
         if(depth + 1 >= 5) {
-          console.log(newMakeList, perSumData);
+          // console.log(newMakeList, perSumData);
           if(perSumData.price > this.maxPrice) {
+            // 가격이 넘으면 안되고
             return;
           }
+          let itemPropSum = perSumData.property['[신속]'] ? perSumData.property['[신속]'] : 0
+                           + perSumData.property['[특화]'] ? perSumData.property['[특화]'] : 0
+                           + perSumData.property['[치명]'] ? perSumData.property['[치명]'] : 0;
+          if(propSum > itemPropSum){
+            // 특성 합이 부족하면 탈락
+            // return;
+          }
+
+          // 개별 특성 합이 너무 부족해도 탈락 
+          if(perSumData.property['[신속]'] 
+            && perSumData.property['[신속]'] < Number(this.props['[신속]'])) {
+            return;
+          }
+          if(perSumData.property['[치명]'] 
+            && perSumData.property['[치명]'] < Number(this.props['[치명]'])) {
+            return;
+          }
+          if(perSumData.property['[특화]'] 
+            && perSumData.property['[특화]'] < Number(this.props['[특화]'])) {
+            return;
+          }
+          perSumData.propertySum = ((perSumData.property['[특화]'] ? perSumData.property['[특화]'] : 0)
+                                  + (perSumData.property['[신속]'] ? perSumData.property['[신속]'] : 0)
+                                  + (perSumData.property['[치명]'] ? perSumData.property['[치명]'] : 0));
+
           allOfFinal.push([newMakeList, perSumData]);
-          this.testAllData.push([newMakeList, perSumData]);
+          if(allOfFinal.length > this.dataLimit + 2) {
+            this.tooMuchData = true;
+          }
+          // this.testAllData.push([newMakeList, perSumData]);
           return;
         } 
 
         recursive(sourceList, depth + 1, newMakeList, perSumData);
       });
     }
-    recursive(allItemList, 0, [], {price: 0, sockets: [], penalty: [], property: []});
-
+    let prePenalty: any = {};
+    prePenalty[this.selectedPenalty.name] = Number(this.selectedPenalty.number);
+    recursive(allItemList, 0, [], {price: 0, sockets: {}, penalty: prePenalty, property: {}, propertySum: 0,});
+    // console.log('end of getFinalComposition');
+    this.testAllData.push(...allOfFinal);
     return allOfFinal;
   }
 
   onClickCalcPrice() {
+    this.progressing = 0;
+    this.calculating = true;
+    this.tooMuchData = false;
+
+    this.props['[치명]'] = Number(this.props['[치명]']);
+    this.props['[특화]'] = Number(this.props['[특화]']);
+    this.props['[신속]'] = Number(this.props['[신속]']);
+
+    setTimeout(() => {
+      this.testAllData = [];
+      console.log(this.calculating)
+      this.oneDepth();
+      console.log('end')
+      this.calculating = false;
+    }, 1000);
+  }
+  async oneDepth(){
     this.allAccComposition.forEach((rootComposition : any[]) => {
       // 각인 숫자 조합 경우의 수
-      let index = 0;
       for(let cases of rootComposition){
-        cases.accCompositions.push(...this.getFinalComposition(cases.accList));
-        ++index;
-        console.log(index);
-        if(index > 1) {
-          return
-        }
+        // console.log('cases', this.progressing);
+        cases.accCompositions = [];
+        let res = this.getFinalComposition(cases.accList)
+        cases.accCompositions.push(res);
+        // console.log('function end', index);
+        // console.log('cases end', this.progressing);
+        
+        ++this.progressing;
+        // if(this.progressing > 500) {
+        //   return
+        // }
       }
     })
   }
 }
 </script>
 
+<style lang="scss">
+input {
+  padding: 4px;
+  margin: 2px;
+  background-color: #ddd;
+  border: 1px solid cadetblue;
+}
+</style>
+
 <style scoped lang="scss">
+.acccomp-root {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  grid-auto-flow: column;
+}
 .acccomp-wrapper {
   width: 100%;
   display: flex;
@@ -558,12 +734,29 @@ export default class AccComposition extends Vue {
   align-items: stretch;
 
   .socket-list {
-    width: 80%;
+    width: 100%;
 
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    grid-auto-flow: column;
-    align-items: stretch;
+    display: flex;
+
+    .socket {
+      flex: 1;
+    }
+    // display: grid;
+    // grid-template-columns: repeat(6, 1fr);
+    // grid-auto-flow: column;
+    // align-items: stretch;
+  }
+  .manual-inputs{
+    width: 100%;
+
+    display: flex;
+    // display: grid;
+    // grid-template-columns: repeat(6, 1fr);
+    // grid-auto-flow: column;
+
+    input {
+      width: 90%;
+    }
   }
   .socket-desposition {
     width: 80%;
@@ -617,5 +810,11 @@ export default class AccComposition extends Vue {
     font-size: 1.25rem;
     font-weight: 700;
 
+    user-select: none;
+    cursor: pointer;
+
+    &:hover {
+      background-color: gold;
+    }
   }
 </style>
