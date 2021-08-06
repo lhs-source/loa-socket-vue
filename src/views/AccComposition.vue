@@ -130,16 +130,16 @@ export default class AccComposition extends Vue {
   allAccComposition: any[] = [];
   testAllData: any[] = [];
   // 가격
-  maxPrice = 38000;
+  maxPrice = 50000;
   props = {
-    '[치명]': 430,
+    '[치명]': 50,
     '[특화]': 430,
-    '[신속]': 900,
+    '[신속]': 1400,
   }
   calculating = false;
   need = [15, 15, 15, 15, 15];
-  stone = [7, 0, 0, 7, 0];
-  doc = [0, 0, 9, 0, 12];
+  stone = [0, 0, 7, 7, 0];
+  doc = [0, 9, 0, 0, 12];
 
   // 계산 중...
   progressing = 0;
@@ -464,6 +464,7 @@ export default class AccComposition extends Vue {
       // 악세별로 돌아가면서 
       let sock1 = -1;
       let sock2 = -1;
+      let sockLarge = true; // a > b
       let output: any = [];
 
       for(let i = 0; i < sock.length; ++i) {
@@ -475,7 +476,12 @@ export default class AccComposition extends Vue {
           }
         }
       }
-      // console.log(sock);
+      if(sock[sock1] > sock[sock2]) {
+        sockLarge = true;
+      } else {
+        sockLarge = false;
+      }
+      console.log(sock, sock1, sock2);
 
       let item: any = {};
       let socket: Socket[] = [];
@@ -483,17 +489,17 @@ export default class AccComposition extends Vue {
       switch(sockIndex){
         case 0:
           // neckless
-          item = this.nectMetricsData[sock1][sock2];
+          item = sockLarge === true ? this.nectMetricsData[sock1][sock2] : this.nectMetricsData[sock2][sock1];
           break;
         case 1:
         case 2:
           // earring
-          item = this.earringMetricsData[sock1][sock2];
+          item = sockLarge === true ? this.earringMetricsData[sock1][sock2] : this.earringMetricsData[sock2][sock1];
           break;
         case 3:
         case 4:
           // ring
-          item = this.ringMetricsData[sock1][sock2];
+          item = sockLarge === true ? this.ringMetricsData[sock1][sock2] : this.ringMetricsData[sock2][sock1];
           break;
       }
       return item;
