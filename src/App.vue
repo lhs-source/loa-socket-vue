@@ -3,7 +3,8 @@
     <div id="nav">
       <router-link to="/test">각인</router-link>
       <router-link to="/trade-rate">제작 비용 비교</router-link>
-      <router-link to="/acc-list">악세서리 모아보기</router-link>
+      <router-link to="/acc-list">유물 악세서리 모아보기</router-link>
+      <router-link to="/acc-list-legend">전설 악세서리 모아보기</router-link>
     </div>
     <router-view />
   </div>

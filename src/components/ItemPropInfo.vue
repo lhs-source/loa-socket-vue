@@ -15,6 +15,12 @@
                 </div>
             </div>
             <div>특성 합 {{itemData[1].propertySum}}</div>
+            <div class="socket">
+                <div v-for="key of Object.keys(itemData[1].sockets)" :key="key">
+                    <span class="label">{{key}}</span>
+                    <span>{{itemData[1].sockets[key]}}</span>
+                </div>
+            </div>
         </div>
         <div class="itemlist">
             <div v-for="(item, itemIndex) of itemData[0]" :key="itemIndex">
@@ -57,7 +63,7 @@ export default class ItemPropInfo extends Vue {
         width: 100%;
 
         display: grid; 
-        grid-template-columns: repeat(4, 1fr); 
+        grid-template-columns: repeat(5, 1fr); 
         grid-auto-flow: column; font-size: 0.75rem;
 
         padding: 4px 0;
@@ -67,7 +73,7 @@ export default class ItemPropInfo extends Vue {
             font-size: 1.25rem;
         }
 
-        .penalty, .property {
+        .penalty, .property, .socket {
 
             .label {
                 display: inline-block; 

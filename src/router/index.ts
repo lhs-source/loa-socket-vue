@@ -37,6 +37,12 @@ const routes: Array<RouteConfig> = [
     component: () =>
       import(/* webpackChunkName: "about" */ "../views/AccList.vue"),
   },
+  {
+    path: "/acc-list-legend",
+    name: "AccListLegend",
+    component: () =>
+      import(/* webpackChunkName: "about" */ "../views/AccListLegend.vue"),
+  },
 ];
 
 const router = new VueRouter({
