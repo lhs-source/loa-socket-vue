@@ -216,7 +216,7 @@ export default class AccComposition extends Vue {
       desposition.push(comp);
     });
 
-    console.log(desposition);
+    // console.log(desposition);
 
     let despComposition: any[] = this.getDespComposition(desposition, sumOfSocket);
     return despComposition;
@@ -287,11 +287,11 @@ export default class AccComposition extends Vue {
       return ableComp;
     }
     let recursive = (remain : number, maxcount: number, makeList: any[]) => {
-      console.log(maxcount, desposition.length)
+      // console.log(maxcount, desposition.length)
       if(maxcount >= desposition.length) {
         return;
       }
-      console.log(desposition[maxcount].length)
+      // console.log(desposition[maxcount].length)
       if(desposition[maxcount].length === 0) {
         recursive(remain, maxcount + 1, makeList);
         // return;
@@ -310,7 +310,7 @@ export default class AccComposition extends Vue {
             val2.forEach((val3 : number) => innerSum += val3);
             sum += innerSum;
           });
-          console.log(socketSum, sum)
+          // console.log(socketSum, sum)
           if(socketSum <= sum){
             ableComp.push([...makeList, target]);
           }
@@ -481,7 +481,7 @@ export default class AccComposition extends Vue {
       } else {
         sockLarge = false;
       }
-      console.log(sock, sock1, sock2);
+      // console.log(sock, sock1, sock2);
 
       let item: any = {};
       let socket: Socket[] = [];
@@ -539,6 +539,11 @@ export default class AccComposition extends Vue {
         if(this.tooMuchData === true) {
           return;
         }
+        // 아이템 이름이 같으면 안된다 ㅠ
+        if(makeList.length > 0 && makeList[makeList.length - 1].name === item.name) {
+          return;
+        }
+
         // 악세 종류 하나의 list 중 아이템 하나임!
         // 특성을 모두 합쳐서 sum 에 담기
         if(!item.price || item.price < 0) {
@@ -691,9 +696,9 @@ export default class AccComposition extends Vue {
 
     setTimeout(() => {
       this.testAllData = [];
-      console.log(this.calculating)
+      // console.log(this.calculating)
       this.oneDepth();
-      console.log('end')
+      // console.log('end')
       this.calculating = false;
     }, 1000);
   }
