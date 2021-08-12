@@ -19,9 +19,22 @@ enum ACCTYPE {
 })
 export default class ServerService extends Vue {
 
+    /**
+     * * 데이터 크롤링 요청
+     */
     putAccessaryFromTrader(request: RequestAccessaryFromTrader) {
         return axios.put('http://localhost:5000/acc', request).then((res: any) => {
             console.log(res);
+            return res;
+        })
+    }
+    /**
+     * * 조합 가져오기
+     */
+    postAccessaryFromTrader(request: RequestComposition) {
+        return axios.post('http://localhost:5000/acc', request).then((res: any) => {
+            console.log(res);
+            return res;
         })
     }
 }
@@ -30,5 +43,19 @@ export interface RequestAccessaryFromTrader {
     grade: 4 | 5;
     socket: Socket[];
 }
+
+export interface RequestComposition {
+    socketList: Socket[];
+    needNumber: number[];
+    grade: 4 | 5;
+    maxPrice: number;
+    props: any;
+    penalty: {
+        name: string;
+        number: number;
+    }
+
+}
+
 
 </script>

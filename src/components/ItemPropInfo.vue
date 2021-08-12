@@ -31,12 +31,14 @@
                 <div class="socket"><span>{{item.badSocket1.name}}</span> : {{item.badSocket1.number}}</div>
                 <div class="property"><span>{{item.property1.name}}</span> : {{item.property1.number}}</div>
                 <div class="property" v-if="item.property2.number"><span>{{item.property2.name}}</span> : {{item.property2.number}}</div>
+                <div class="timestamp" v-if="item.timestamp">{{moment(item.timestamp).format('YYYY-MM-DD HH시 mm분')}}</div>
             </div>
         </div>
     </div>
 </template>
 
 <script lang="ts">
+import moment from 'moment';
 import { Component, Vue, Prop } from 'vue-property-decorator';
 
 interface SumDataModel {
@@ -51,6 +53,9 @@ type ItemPropData = [any[], SumDataModel];
 @Component
 export default class ItemPropInfo extends Vue {
     @Prop({default: () => []}) readonly itemData!: ItemPropData;
+    moment(val: any) {
+        return moment(val);
+    }
 }
 </script>
 
@@ -67,6 +72,7 @@ export default class ItemPropInfo extends Vue {
         grid-auto-flow: column; font-size: 0.75rem;
 
         padding: 4px 0;
+        padding-bottom: 8px;
 
 
         .price {
