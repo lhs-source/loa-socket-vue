@@ -24,7 +24,6 @@ export default class ServerService extends Vue {
      */
     putAccessaryFromTrader(request: RequestAccessaryFromTrader) {
         return axios.put('http://localhost:5000/acc', request).then((res: any) => {
-            console.log(res);
             return res;
         })
     }
@@ -33,7 +32,6 @@ export default class ServerService extends Vue {
      */
     postAccessaryFromTrader(request: RequestComposition) {
         return axios.post('http://localhost:5000/acc', request).then((res: any) => {
-            console.log(res);
             return res;
         })
     }

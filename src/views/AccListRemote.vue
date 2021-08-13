@@ -1,7 +1,7 @@
 <template>
   <div class="root-wrapper">
     <!-- 각인 선택 사이드바 -->
-    <div class="socket-list" style="grid-column: 1/ 2; grid-row: 1 / 3">
+    <div class="socket-list">
       <div class="selected">
         <div
           class="socket-row"
@@ -23,12 +23,51 @@
         </div>
       </div>
     </div>
-    <div class="body-side" style="grid-column: 2 / 3; grid-row: 1 / 2">
+    <div class="condition-list">
+      <div class="row">
+        <label>가격 제한</label>
+        <input type="number" v-model="maxPrice" />
+      </div>
+      <div class="row">
+        <label>치명</label>
+        <input type="number" v-model="props['[치명]']" />
+      </div>
+      <div class="row">
+        <label>특화</label>
+        <input type="number" v-model="props['[특화]']" />
+      </div>
+      <div class="row">
+        <label>신속</label>
+        <input type="number" v-model="props['[신속]']" />
+      </div>
+      <div class="row">
+        <label>유물이면 체크, 아니면 해제</label>
+        <input type="checkbox" v-model="isRelics" />
+      </div>
+      <div class="row">
+        <label>돌 패널티</label>
+        <select v-model="selectedPenalty.name" style="width: 200px;">
+          <option value="[공격속도 감소]">[공격속도 감소]</option>
+          <option value="[이동속도 감소]">[이동속도 감소]</option>
+          <option value="[방어력 감소]">[방어력 감소]</option>
+          <option value="[공격력 감소]">[공격력 감소]</option>
+        </select>
+        <input type="number" v-model="selectedPenalty.number" />
+      </div>
+    </div>
+    <div class="body-side">
       <div class="selected-socket-list">
+        <div class="font-relics" style="">
+          순서대로, 1. 필요한 각인 수치 2. 세공 수치 3. 각인서 수치 4. 장신구에서 충당할 수치 입니다.
+        </div>
         <div class="item-box">
-          <div v-for="socket of selectedSocket" :key="socket.id">
+          <div v-for="(socket, index) of selectedSocket" :key="socket.id">
             <div>{{socket.id}}</div>
             <div style="font-size: 1.5rem;">{{socket.name}}</div>
+            <input class="need" type="number" v-model="need[index]"/>
+            <input class="stone" type="number" v-model="stone[index]"/>
+            <input class="doc" type="number" v-model="doc[index]"/>
+            <div class="font-relics" style="font-size: 1.5rem;">{{remainSocket[index]}}</div>
           </div>
         </div>
         <div class="search-button" style="min-width: 360px;" @click="onClickPutRequest">
@@ -85,6 +124,24 @@ export default class AccList extends mixins(ServerService) {
   // 조합 계산 기다리는 중?
   gettingComposition = false;
 
+  // 입력값
+  need = [15, 15, 15, 15, 15];
+  stone = [0, 0, 7, 7, 0];
+  doc = [0, 9, 0, 0, 12];
+
+  isRelics = true;
+  props = {
+    '[치명]' : 50,
+    '[특화]' : 430,
+    '[신속]' : 1400,
+  };
+  maxPrice = 50000;
+  selectedPenalty = {
+    name: '[공격력 감소]',
+    number: 4,
+  }
+
+
   /**
    * * 남겨진 각인 목록
    */
@@ -97,6 +154,11 @@ export default class AccList extends mixins(ServerService) {
     });
   }
   
+  get remainSocket() {
+    return this.need.map((val, index) => {
+      return val - this.stone[index] - this.doc[index];
+    })
+  }
 
   /**
    * * 각인 추가
@@ -138,18 +200,11 @@ export default class AccList extends mixins(ServerService) {
     this.gettingComposition = true;
     let param : RequestComposition = {
       socketList: this.selectedSocket,
-      needNumber: [8, 8, 6, 15, 3],
-      grade: 5,
-      maxPrice: 60000,
-      props:  {
-        '[치명]' : 50,
-        '[특화]' : 430,
-        '[신속]' : 1400,
-      },
-      penalty: {
-        name: '[공격력 감소]',
-        number: 4,
-      }
+      needNumber: this.remainSocket,
+      grade: this.isRelics === true ? 5 : 4,
+      maxPrice: this.maxPrice,
+      props:  this.props,
+      penalty: this.selectedPenalty,
     }
     this.postAccessaryFromTrader(param).then((res: any) => {
       console.log(res);
@@ -167,9 +222,27 @@ $data-padding: 4px;
 
 .root-wrapper {
   display: grid;
-  grid-template-columns: 272px 1fr;
-  grid-template-rows: auto auto;
+  grid-template-columns: auto auto 1fr;
+  grid-template-rows: auto;
   flex-wrap: nowrap;
+
+  input, select { 
+    background-color: transparent;
+    border: none;
+    border-bottom: 2px solid #B0AFC6;
+    color: #B0AFC6;
+    padding-bottom: 4px;
+
+    &.need, &.doc, &.stone {
+      width: 112px;
+      font-size: 1.25rem;
+      margin-top: 8px;
+    }
+    &:focus {
+      outline: none;
+      border-bottom: 2px solid #CCB28C;
+    }
+  }
 
   .search-list {
     padding: 24px;
@@ -183,6 +256,7 @@ $data-padding: 4px;
   // 소켓 선택 사이드바
   .socket-list {
     overflow: auto;
+    grid-column: 1/ 2; grid-row: 1 / 2;
 
     width: 240px;
     height: calc(100vh - 77px - 32px);
@@ -209,8 +283,34 @@ $data-padding: 4px;
       }
     }
   }
+  // 조건 설정 사이드
+  .condition-list {
+    overflow: auto;
+    grid-column: 2/ 3; grid-row: 1 / 2;
+
+    width: 240px;
+    height: calc(100vh - 77px - 32px);
+    background-color: #21233A;
+    border: 1px solid #B0AFC6;
+    border-radius: 8px;
+    margin: 16px;
+    margin-left: 0;
+    padding: 16px;
+
+    .row {
+      margin: 16px 0;
+
+      input, select {
+        width: 120px;
+        margin-left: 8px;
+        font-size: 1.25rem;
+      }
+    }
+  }
+  // 본판
   .body-side {
     overflow-y: auto;
+    grid-column: 3/ 4; grid-row: 1/ 2;
     // 선택한 각인 목록
     .selected-socket-list {
       background-color: #21233A;
@@ -219,7 +319,7 @@ $data-padding: 4px;
       margin-top: 16px;
       margin-right: 16px;
       padding: 24px;
-      height: 196px;
+      height: 356px;
 
       display: flex;
       flex-direction: column;
