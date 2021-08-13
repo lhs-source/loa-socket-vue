@@ -84,9 +84,16 @@
         <!-- <div v-for="(comp, index) of compositions" :key="index">
           {{comp}}
         </div> -->
-        
-        <ItemPropInfo v-for="(item, itemIndex) of compositions" :key="itemIndex" :itemData="item">
-        </ItemPropInfo>
+        <template v-if="dataTooMuch > 0">
+          <div class="font-relics" style="">
+            데이터 개수({{dataTooMuch}}개)가 너무 많습니다! 조건을 조정해주세요.
+          </div>
+        </template>
+        <template v-else>
+          
+          <ItemPropInfo v-for="(item, itemIndex) of compositions" :key="itemIndex" :itemData="item">
+          </ItemPropInfo>
+        </template>
       </div>
     </div>
   </div>
@@ -141,6 +148,9 @@ export default class AccList extends mixins(ServerService) {
     number: 4,
   }
 
+  // 데이터 너무 많이 받았다는 응답;
+  dataTooMuch = 0;
+
 
   /**
    * * 남겨진 각인 목록
@@ -182,7 +192,7 @@ export default class AccList extends mixins(ServerService) {
     }
     this.gettingCrawling = true;
     let param : RequestAccessaryFromTrader = {
-      grade: 5,
+      grade: this.isRelics === true ? 5 : 4,
       socket: this.selectedSocket,
     }
     this.putAccessaryFromTrader(param).then((res : any) => {
@@ -209,7 +219,16 @@ export default class AccList extends mixins(ServerService) {
     this.postAccessaryFromTrader(param).then((res: any) => {
       console.log(res);
       this.gettingComposition = false;
-      this.compositions = res.data;
+      if(typeof(res.data) === 'number') {
+        this.dataTooMuch = res.data;
+        this.compositions = [];
+        return res;
+      }
+      else {
+        this.dataTooMuch = 0;
+        this.compositions = res.data;
+        return res;
+      }
     })
   }
 }

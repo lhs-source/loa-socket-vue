@@ -31,18 +31,18 @@ const routes: Array<RouteConfig> = [
     component: () =>
       import(/* webpackChunkName: "about" */ "../views/TradeRate.vue"),
   },
-  {
-    path: "/acc-list",
-    name: "AccList",
-    component: () =>
-      import(/* webpackChunkName: "about" */ "../views/AccList.vue"),
-  },
-  {
-    path: "/acc-list-legend",
-    name: "AccListLegend",
-    component: () =>
-      import(/* webpackChunkName: "about" */ "../views/AccListLegend.vue"),
-  },
+  // {
+  //   path: "/acc-list",
+  //   name: "AccList",
+  //   component: () =>
+  //     import(/* webpackChunkName: "about" */ "../views/AccList.vue"),
+  // },
+  // {
+  //   path: "/acc-list-legend",
+  //   name: "AccListLegend",
+  //   component: () =>
+  //     import(/* webpackChunkName: "about" */ "../views/AccListLegend.vue"),
+  // },
   {
     path: "/acc-list-remote",
     name: "AccListRemote",
