@@ -1,7 +1,8 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/test">각인</router-link>
+      <router-link to="/home">홈</router-link>
+      <!-- <router-link to="/test">각인</router-link> -->
       <router-link to="/trade-rate">제작 비용 비교</router-link>
       <!-- <router-link to="/acc-list">유물 악세서리 모아보기</router-link> -->
       <!-- <router-link to="/acc-list-legend">전설 악세서리 모아보기</router-link> -->
@@ -44,34 +45,6 @@
       color: #fdd393;
     }
   }
-}
-
-$color-normal : #b8b8b8;
-$color-advanced : #6fc300;
-$color-rare : #00b5ff;
-$color-hero : #bf00fe;
-$color-legend : #f39303;
-$color-relics : #ff6000;
-$color-mythology : #eee;
-
-// common
-.font-gold { color: gold;}
-
-.font-normal { color: $color-normal; }
-.font-advanced { color: $color-advanced; }
-.font-rare { color: $color-rare; }
-.font-hero { color: $color-hero; }
-.font-legend { color: $color-legend; }
-.font-relics { color: $color-relics; }
-.font-mythology { color: $color-mythology; }
-
-.font-red { color: #ff2600;}
-.font-blue { color: #008cff;}
-
-// layout
-.flex-center {
-  display: flex;
-  align-items: center;
 }
 
 </style>

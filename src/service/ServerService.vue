@@ -23,7 +23,7 @@ export default class ServerService extends Vue {
      * * 데이터 크롤링 요청
      */
     putAccessaryFromTrader(request: RequestAccessaryFromTrader) {
-        return axios.put('http://localhost:5000/acc', request).then((res: any) => {
+        return axios.put('/api/acc', request).then((res: any) => {
             return res;
         })
     }
@@ -31,7 +31,7 @@ export default class ServerService extends Vue {
      * * 조합 가져오기
      */
     postAccessaryFromTrader(request: RequestComposition) {
-        return axios.post('http://localhost:5000/acc', request).then((res: any) => {
+        return axios.post('/api/acc', request).then((res: any) => {
             return res;
         })
     }
