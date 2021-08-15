@@ -69,7 +69,7 @@
       <div class="selected-socket-list box">
         <div class="title">
           선택한 각인 목록          
-          <div class="font-relics" style="margin-left: 8px;">
+          <div class="font-advanced" style="margin-left: 8px;">
             순서대로, 1. 필요한 각인 수치 2. 세공 수치 3. 각인서 수치 4. 장신구에서 충당할 수치 입니다.
           </div>
         </div>
@@ -207,8 +207,53 @@ export default class AccList extends mixins(ServerService) {
    * * 서버에 데이터 크롤링을 요청한다.
    */
   onClickGetComposition() {
+    // validations
+    // 지금 조회 중...
+    if(this.gettingComposition === true ||
+      this.gettingCrawling === true) {
+      this.$notify({
+        type: 'error',
+        group: 'validation',
+        title: '요청 불가',
+        text: '지금 데이터를 받아오고 있으니 조금만 기다려주세요.',
+      });
+      return;
+    }
+    // 선택한 각인이 1개 이하
+    if(this.selectedSocket.length <= 1) {
+      this.$notify({
+        type: 'error',
+        group: 'validation',
+        title: '요청 불가',
+        text: '각인은 2개 이상 선택해주세요.',
+      });
+      return;
+    }
+    // 특성 합을 체크한다
+    let sumProp = Object.values(this.props).reduce((sum: number, current: number) => {sum += current; return sum;}, 0);
+    // console.log(sumProp);
+    if(this.isRelics === false && (sumProp < 1600 || sumProp > 1750) ||
+      this.isRelics === true && (sumProp < 1800 || sumProp > 1950)) {
+      this.$notify({
+        type: 'error',
+        group: 'validation',
+        title: '요청 불가',
+        text: `전설은 특성합이 1600 이상, 1750 이하, 유물은 합이 1800 이상 1950 이하여야 합니다. 현재 ${sumProp}.`,
+      });
+      return;
+    }
+
+    // 요청 스타트
     this.requestCrawling().then((res : any) => {
-      this.requestComposition();
+      return this.requestComposition();
+    }).then((res:any) => {
+      this.$notify({
+        type: 'success',
+        group: 'validation',
+        title: '응답',
+        text: '데이터를 받아왔습니다. 확인해주세요',
+      });
+      return res;
     })
   }
   async requestCrawling() {
@@ -222,7 +267,7 @@ export default class AccList extends mixins(ServerService) {
       needNumber: this.remainSocket,
     }
     return this.putAccessaryFromTrader(param).then((res : any) => {
-      console.log(res);
+      // console.log(res);
       this.gettingCrawling = false;
       return res;
     })
@@ -231,13 +276,7 @@ export default class AccList extends mixins(ServerService) {
    * * 조합을 가져오자! ㅜㅜ
    */
   async requestComposition() {
-    if(this.gettingComposition === true ||
-      this.gettingCrawling === true) {
-      return;
-    }
-    if(this.selectedSocket.length <= 1) {
-      return;
-    }
+  
     this.gettingComposition = true;
     let param : RequestComposition = {
       socketList: this.selectedSocket,
@@ -248,10 +287,10 @@ export default class AccList extends mixins(ServerService) {
       penalty: this.selectedPenalty,
     }
     return this.postAccessaryFromTrader(param).then((res: any) => {
-      console.log(res);
+      // console.log(res);
       this.gettingComposition = false;
       if(res.data.count) {
-        console.log(res.data.count);
+        // console.log(res.data.count);
         this.dataTooMuch = res.data.count;
         this.compositions = [];
         return res;

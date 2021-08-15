@@ -172,7 +172,7 @@ export default class AccComposition extends Vue {
     }
 
     let output = this.socketList.map((val: Socket, i: number) => {
-      console.log("AccComposition:calcSocketList", val, i);
+      // console.log("AccComposition:calcSocketList", val, i);
       let item: Item = {
         id: i,
         socket: val,

@@ -1,5 +1,13 @@
 <template>
   <div id="app">
+    <!-- 노티 -->
+    <notifications 
+      group="validation" 
+      :duration="3000" 
+      position="top center" 
+      classes="noti"
+      width="480px"/>
+
     <div id="nav">
       <router-link to="/home">🏚 홈</router-link>
       <!-- <router-link to="/test">각인</router-link> -->
@@ -68,6 +76,47 @@ export default class App extends Vue {
     &.router-link-exact-active {
       color: $color-summer06;
     }
+  }
+}
+
+.noti {
+  padding: 16px;
+  margin: 0 5px 5px;
+ 
+  font-size: 12px;
+ 
+  color: $color-stone03;
+  background-color: $color-stone09;
+  border: 1px solid $color-stone05;
+  border-top-width: 3px;
+  border-color: $color-relics;
+  box-shadow: 0px 2px 10px #333333aa;
+
+  .notification-title {
+    // Style for title line 
+    filter: brightness(1.1);
+    font-size: 1rem;
+  }
+ 
+  .notification-content {
+    // Style for content 
+    font-size: 14px;
+  }
+ 
+  &.warn {
+    background-color: $color-stone09;
+    border-color: gold;
+    color: gold;
+  }
+  &.error {
+    background-color: $color-stone09;
+    border-color: $color-relics;
+    color: $color-relics;
+  }
+  &.success {
+    background-color: $color-stone09;
+    border-color: $color-rare;
+    color: $color-rare;
   }
 }
 
