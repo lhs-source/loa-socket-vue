@@ -1,13 +1,13 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/home">홈</router-link>
+      <router-link to="/home">🏚 홈</router-link>
       <!-- <router-link to="/test">각인</router-link> -->
-      <router-link to="/trade-rate">생활 제작 비용 비교</router-link>
+      <router-link to="/trade-rate">🍀 생활 제작 비용 비교</router-link>
       <!-- <router-link to="/acc-list">유물 악세서리 모아보기</router-link> -->
       <!-- <router-link to="/acc-list-legend">전설 악세서리 모아보기</router-link> -->
-      <router-link to="/acc-list-remote">장신구 조합 계산</router-link>
-      <router-link to="/stat">통계</router-link>
+      <router-link to="/acc-list-remote">👓 장신구 조합 계산</router-link>
+      <router-link to="/stat">🧪 통계</router-link>
     </div>
     <router-view />
   </div>
@@ -21,29 +21,28 @@
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #f1f1f1;
-  background-color: #262525;
+  background-color: $color-stone10;
   height: 100vh;
   overflow-y: auto;
 }
 
 #nav {
   padding: 24px;
-  background-color: #8484A2;
+  background-color: $color-stone08;
 
   a {
     font-size: 1.25rem;
     text-decoration: none;
-    color: #B0AFC6;
-    font-weight: 500;
+    color: $color-stone02;
 
     padding: 4px 8px;
 
     &:hover {
-      background-color: #262525;
-      color: #CCB28C;
+      background-color: $color-green07;
+      color: $color-stone03;
     }
     &.router-link-exact-active {
-      color: #fdd393;
+      color: $color-summer06;
     }
   }
 }
