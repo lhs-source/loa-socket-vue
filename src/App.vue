@@ -13,6 +13,30 @@
   </div>
 </template>
 
+<script lang="ts">
+import { Component, Vue } from 'vue-property-decorator';
+
+@Component({
+  components: {
+
+  }
+})
+export default class App extends Vue {
+
+
+  constructor(){
+    super();
+
+    if(process.env.NODE_ENV === 'prod'){
+      Vue.config.devtools = false
+      // Vue.config.debug = false
+      Vue.config.silent = true
+    }
+    
+  }
+}
+</script>
+
 <style lang="scss">
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
 #app {
