@@ -40,6 +40,7 @@ export default class ServerService extends Vue {
 export interface RequestAccessaryFromTrader {
     grade: 4 | 5;
     socket: Socket[];
+    needNumber: number[];
 }
 
 export interface RequestComposition {

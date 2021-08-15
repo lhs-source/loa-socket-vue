@@ -70,13 +70,13 @@
             <div class="font-relics" style="font-size: 1.5rem;">{{remainSocket[index]}}</div>
           </div>
         </div>
-        <div class="search-button" style="min-width: 360px;" @click="onClickPutRequest">
+        <!-- <div class="search-button" style="min-width: 360px;" @click="onClickPutRequest">
           크롤링 요청하기<span v-if="gettingCrawling === true">(요청중~)</span>
-        </div>
+        </div> -->
       </div>
       <div class="acc-list">
         <div class="search-button" style="min-width: 360px;" @click="onClickGetComposition">
-          조합 계산하기<span v-if="gettingComposition === true">(요청중~)</span>
+          조합 계산하기<span v-if="gettingComposition === true">(조합 계산하는 중..)</span><span v-else-if="gettingCrawling === true">(데이터 찾는 중..)</span>
         </div>
         <div class="acc-length">
           결과 {{compositions.length}} 개
@@ -84,9 +84,9 @@
         <!-- <div v-for="(comp, index) of compositions" :key="index">
           {{comp}}
         </div> -->
-        <template v-if="dataTooMuch > 0">
+        <template v-if="dataTooMuch !== 0">
           <div class="font-relics" style="">
-            데이터 개수({{dataTooMuch}}개)가 너무 많습니다! 조건을 조정해주세요.
+            데이터 개수({{Math.abs(dataTooMuch)}}개)가 너무 많습니다! 조건을 조정해주세요.
           </div>
         </template>
         <template v-else>
@@ -186,24 +186,31 @@ export default class AccList extends mixins(ServerService) {
   /**
    * * 서버에 데이터 크롤링을 요청한다.
    */
-  onClickPutRequest() {
+  onClickGetComposition() {
+    this.requestCrawling().then((res : any) => {
+      this.requestComposition();
+    })
+  }
+  async requestCrawling() {
     if(this.gettingCrawling === true) {
-      return;
+      return 0;
     }
     this.gettingCrawling = true;
     let param : RequestAccessaryFromTrader = {
       grade: this.isRelics === true ? 5 : 4,
       socket: this.selectedSocket,
+      needNumber: this.remainSocket,
     }
-    this.putAccessaryFromTrader(param).then((res : any) => {
+    return this.putAccessaryFromTrader(param).then((res : any) => {
       console.log(res);
       this.gettingCrawling = false;
+      return res;
     })
   }
   /**
    * * 조합을 가져오자! ㅜㅜ
    */
-  onClickGetComposition() {
+  async requestComposition() {
     if(this.gettingComposition === true) {
       return;
     }
@@ -216,11 +223,12 @@ export default class AccList extends mixins(ServerService) {
       props:  this.props,
       penalty: this.selectedPenalty,
     }
-    this.postAccessaryFromTrader(param).then((res: any) => {
+    return this.postAccessaryFromTrader(param).then((res: any) => {
       console.log(res);
       this.gettingComposition = false;
-      if(typeof(res.data) === 'number') {
-        this.dataTooMuch = res.data;
+      if(res.data.count) {
+        console.log(res.data.count);
+        this.dataTooMuch = res.data.count;
         this.compositions = [];
         return res;
       }
