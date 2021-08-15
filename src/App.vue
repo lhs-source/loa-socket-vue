@@ -7,6 +7,7 @@
       <!-- <router-link to="/acc-list">유물 악세서리 모아보기</router-link> -->
       <!-- <router-link to="/acc-list-legend">전설 악세서리 모아보기</router-link> -->
       <router-link to="/acc-list-remote">장신구 조합 계산</router-link>
+      <router-link to="/stat">통계</router-link>
     </div>
     <router-view />
   </div>
