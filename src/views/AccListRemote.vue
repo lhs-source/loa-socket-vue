@@ -230,7 +230,7 @@ export default class AccList extends mixins(ServerService) {
       return;
     }
     // 특성 합을 체크한다
-    let sumProp = Object.values(this.props).reduce((sum: number, current: number) => {sum += current; return sum;}, 0);
+    let sumProp = Object.values(this.props).reduce((sum: number, current: number) => {sum += Number(current); return sum;}, 0);
     // console.log(sumProp);
     if(this.isRelics === false && (sumProp < 1600 || sumProp > 1750) ||
       this.isRelics === true && (sumProp < 1800 || sumProp > 1950)) {
