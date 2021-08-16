@@ -10,7 +10,7 @@ Vue.use(Notifications);
 
 // GA 설정
 const GA_MID: any = {
-  id: process.env.NODE_ENV === 'prod' ? 'G-3DFJ0YM1SS' : '',
+  id: process.env.NODE_ENV === 'prod' ? 'G-3DFJ0YM1SS' : 'G-3DFJ0YM1SS',
 }
 
 Vue.use(VueGtag, {

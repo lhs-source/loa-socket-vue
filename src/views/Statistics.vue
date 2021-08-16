@@ -3,7 +3,7 @@
     <!-- 조회 횟수 목록 -->
     <div class="stat-count">
       <div class="title">
-        검색한 각인 합계
+        인기 있는 각인 조합
       </div>
       <div class="count-box" v-for="(item, index) of logSocket" :key="index">
         <div class="count-socket">
@@ -47,12 +47,16 @@
         <div class="price font-gold">
           {{item.price}}원
         </div>
+        <div class="timestamp">
+          {{item.timestamp}}
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
+import moment from 'moment';
 import { Component, Vue } from 'vue-property-decorator';
 import { mixins } from 'vue-class-component';
 
@@ -70,14 +74,26 @@ export default class Statistics extends mixins(StatService) {
   }
 
   async getLogStat() {
+    this.$gtag.event('statistics', {
+      'event_category': 'count',
+      'event_label': 'count',
+      'value': 0
+    })
     this.getAllLogSockets().then((res: any) => {
       this.logSocket = res.data;
     })
   }
 
   async getLogPrice() {
+    this.$gtag.event('search', {
+      'event_category': 'price',
+      'event_label': 'price',
+      'value': 0
+    })
     this.getAllLogPrices().then((res: any) => {
-      this.logPrice = res.data;
+      this.logPrice = res.data.map((val: any) => {
+        return {...val, timestamp: moment(val.createdAt).format('M월 D일 - HH시 mm분 ss초')}
+      });
     })
   }
 
@@ -141,7 +157,7 @@ export default class Statistics extends mixins(StatService) {
     color: $color-stone03;
 
     display: grid;
-    grid-template-columns: 3fr 128px auto 2fr;
+    grid-template-columns: 3fr 128px auto auto 2fr;
 
     .price-socket {
       display: flex;
