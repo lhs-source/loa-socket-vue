@@ -207,6 +207,13 @@ export default class AccList extends mixins(ServerService) {
    * * 서버에 데이터 크롤링을 요청한다.
    */
   onClickGetComposition() {
+    // GA tagging
+    this.$gtag.event('search', {
+        'event_category': 'searchSocket',
+        'event_label': 'searchSocket',
+        'value': 0
+      })
+
     // validations
     // 지금 조회 중...
     if(this.gettingComposition === true ||
@@ -217,6 +224,11 @@ export default class AccList extends mixins(ServerService) {
         title: '요청 불가',
         text: '지금 데이터를 받아오고 있으니 조금만 기다려주세요.',
       });
+      this.$gtag.event('search', {
+        'event_category': 'searchSocket',
+        'event_label': 'searchSocket',
+        'value': -1
+      })
       return;
     }
     // 선택한 각인이 1개 이하
@@ -227,6 +239,11 @@ export default class AccList extends mixins(ServerService) {
         title: '요청 불가',
         text: '각인은 2개 이상 선택해주세요.',
       });
+      this.$gtag.event('search', {
+        'event_category': 'searchSocket',
+        'event_label': 'searchSocket',
+        'value': -2
+      })
       return;
     }
     // 특성 합을 체크한다
@@ -240,8 +257,20 @@ export default class AccList extends mixins(ServerService) {
         title: '요청 불가',
         text: `전설은 특성합이 1600 이상, 1750 이하, 유물은 합이 1800 이상 1950 이하여야 합니다. 현재 ${sumProp}.`,
       });
+      
+      this.$gtag.event('search', {
+        'event_category': 'searchSocket',
+        'event_label': 'searchSocket',
+        'value': -3
+      })
       return;
     }
+    
+    this.$gtag.event('search', {
+        'event_category': 'searchSocket',
+        'event_label': 'searchSocket',
+        'value': 0
+      })
 
     // 요청 스타트
     this.requestCrawling().then((res : any) => {
