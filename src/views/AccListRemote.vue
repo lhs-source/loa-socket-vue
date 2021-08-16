@@ -34,8 +34,15 @@
       </div>
       <div class="contents">
         <div class="row">
+          <label>유물이면 체크, 아니면 해제</label>
+          <input type="checkbox" v-model="isRelics" />
+        </div>
+        <div class="row">
           <label>가격 제한</label>
           <input type="number" v-model="maxPrice" />
+        </div>
+        <div class="description">
+          전설은 1000~5000, 유물은 30000~150000원 선에서 조절하여 넣어주세요. <br/>결과가 3000개 이상이면 데이터를 받아오지 않습니다.
         </div>
         <div class="row">
           <label>치명</label>
@@ -49,9 +56,8 @@
           <label>신속</label>
           <input type="number" v-model="props['[신속]']" />
         </div>
-        <div class="row">
-          <label>유물이면 체크, 아니면 해제</label>
-          <input type="checkbox" v-model="isRelics" />
+        <div class="description">
+          전설은 치특신 합 1550~1750, 유물은 치특신 합 1800~1950 선으로 잡아주시면 됩니다. 현재 {{sumProp}}
         </div>
         <div class="row">
           <label>돌 패널티</label>
@@ -62,6 +68,9 @@
             <option value="[공격력 감소]">[공격력 감소]</option>
           </select>
           <input type="number" v-model="selectedPenalty.number" />
+        </div>
+        <div class="description">
+          돌 패널티는 0부터 4까지 입력 가능합니다.(무조건 패널티 없는 세팅만 취급)
         </div>
       </div>
     </div>
@@ -191,6 +200,14 @@ export default class AccList extends mixins(ServerService) {
   }
 
   /**
+   * * 치특신 합
+   */
+  get sumProp() {
+    let sumProp = Object.values(this.props).reduce((sum: number, current: number) => {sum += Number(current); return sum;}, 0);
+    return sumProp;
+  }
+
+  /**
    * * 각인 추가
    */
   onClickRemainSocket(sock: Socket) {
@@ -247,21 +264,35 @@ export default class AccList extends mixins(ServerService) {
       return;
     }
     // 특성 합을 체크한다
-    let sumProp = Object.values(this.props).reduce((sum: number, current: number) => {sum += Number(current); return sum;}, 0);
     // console.log(sumProp);
-    if(this.isRelics === false && (sumProp < 1600 || sumProp > 1750) ||
-      this.isRelics === true && (sumProp < 1800 || sumProp > 1950)) {
+    if(this.isRelics === false && (this.sumProp < 1550 || this.sumProp > 1750) ||
+      this.isRelics === true && (this.sumProp < 1800 || this.sumProp > 1950)) {
       this.$notify({
         type: 'error',
         group: 'validation',
         title: '요청 불가',
-        text: `전설은 특성합이 1600 이상, 1750 이하, 유물은 합이 1800 이상 1950 이하여야 합니다. 현재 ${sumProp}.`,
+        text: `전설은 특성합이 1550 이상, 1750 이하, 유물은 합이 1800 이상 1950 이하여야 합니다. 현재 ${this.sumProp}.`,
       });
       
       this.$gtag.event('search', {
         'event_category': 'searchSocket',
         'event_label': 'searchSocket',
         'value': -3
+      })
+      return;
+    }
+    if(this.selectedPenalty.number < 0 || this.selectedPenalty.number > 4) {
+      this.$notify({
+        type: 'error',
+        group: 'validation',
+        title: '요청 불가',
+        text: `돌 패널티 수치를 확인해주세요. 0이상 4이하.`,
+      });
+      
+      this.$gtag.event('search', {
+        'event_category': 'searchSocket',
+        'event_label': 'searchSocket',
+        'value': -4
       })
       return;
     }
@@ -439,6 +470,15 @@ $data-padding: 4px;
         color: $color-stone03;
         font-weight: 500;
       }
+    }
+    .description {
+      font-size: .75rem;
+      color: $color-advanced;
+      text-align: left;
+
+      word-wrap: break-word;
+      
+      margin: 0 8px;
     }
   }
   // 본판
