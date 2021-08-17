@@ -130,7 +130,6 @@
 import { Component, Vue } from "vue-property-decorator";
 import { mixins } from "vue-class-component";
 import moment from "moment";
-import SWorker from 'simple-web-worker';
 
 import SearchList from "./SearchList.vue";
 import ItemPropInfo from '../components/ItemPropInfo.vue';
@@ -344,6 +343,13 @@ export default class AccList extends mixins(ServerService) {
           text: '에러가 발생했습니다. 다시 시도해주세요.',
         });
       });
+    }).catch((err: any) => {
+      this.$notify({
+        type: 'error',
+        group: 'validation',
+        title: '결과',
+        text: '에러가 발생했습니다. 다시 시도해주세요.',
+      });
     })
   }
   async requestCrawling() {
@@ -398,7 +404,7 @@ export default class AccList extends mixins(ServerService) {
         //   }
         // })
         // return res;
-        console.log('워커 ㄴㄴ');
+        // console.log('워커 ㄴㄴ');
         let result = this.calculateFinal(res.data);
         if(typeof result === 'number') {
           // 개수 초과
@@ -414,7 +420,7 @@ export default class AccList extends mixins(ServerService) {
         }
       }
       else {
-        console.log('워커 ㄴㄴ');
+        // console.log('워커 ㄴㄴ');
         let result = this.calculateFinal(res.data);
         if(typeof result === 'number') {
           // 개수 초과
@@ -429,6 +435,9 @@ export default class AccList extends mixins(ServerService) {
         return res;
       }
 
+    }).catch((err: any) => {
+      this.gettingComposition = false;
+      return err;
     })
   }
 
@@ -442,7 +451,7 @@ export default class AccList extends mixins(ServerService) {
     // console.log('all cases', res);
 
     res.forEach((cases: any[], caseCount: number) => {
-      console.log('all cases ', caseCount, cases.length);
+      // console.log('all cases ', caseCount, cases.length);
       // 총 개수 누적
       this.totalCount += res.length;
       if(stop === true) {
@@ -456,11 +465,11 @@ export default class AccList extends mixins(ServerService) {
         // console.log('accList', oneCase.accList);
         // console.log('calculateFinal', oneCaseCount, maxPrice, props, penalty, oneCase.accList)
         let result = this.getFinalComposition(maxPrice, props, penalty, oneCase.accList);
-        console.log('typeof(result)', typeof(result));
+        // console.log('typeof(result)', typeof(result));
         // 진행 개수 업데이트
         ++this.calcCount;
         if(typeof(result) === 'number') {
-          console.log('getFinalComposition stop', `${caseCount}-${oneCaseCount}`, result);
+          // console.log('getFinalComposition stop', `${caseCount}-${oneCaseCount}`, result);
           stop = true;
         }else {
           // console.log('getFinalComposition', `${caseCount}-${oneCaseCount}`, result.length);
@@ -468,12 +477,12 @@ export default class AccList extends mixins(ServerService) {
           if(finalResult.length > MaxSearchCount) {
             // 멈춤!
             stop = true;
-            console.log('멈춰!');
+            // console.log('멈춰!');
           }
         }
       })
     })
-    console.log('finalResult', finalResult.length);
+    // console.log('finalResult', finalResult.length);
 
     if(finalResult.length > MaxSearchCount) {
       return -finalResult.length;
@@ -647,7 +656,7 @@ export default class AccList extends mixins(ServerService) {
 
           allOfFinal.push([newMakeList, perSumData]);
           if(allOfFinal.length > dataLimit + 2) {
-            console.log('data too much more');
+            // console.log('data too much more');
             tooMuchData = true;
           }
           // this.testAllData.push([newMakeList, perSumData]);
