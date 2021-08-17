@@ -63,7 +63,7 @@ const SocketList: Socket[] = [
     { id: 195, name: '절실한 구원', class:'바드'},
     { id: 276, name: '절정', class:'창술사'},
     { id: 277, name: '절제', class:'창술사'},
-    { id: 293, name: '점화', class:'점화'},
+    { id: 293, name: '점화', class:'소서리스'},
     { id: 303, name: '정밀 단도', class:''},
     { id: 259, name: '죽음의 습격', class:'호크아이'},
     { id: 197, name: '중력 수련', class:'디스트로이어'},

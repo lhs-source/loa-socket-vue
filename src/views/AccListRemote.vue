@@ -130,6 +130,7 @@
 import { Component, Vue } from "vue-property-decorator";
 import { mixins } from "vue-class-component";
 import moment from "moment";
+import SWorker from 'simple-web-worker';
 
 import SearchList from "./SearchList.vue";
 import ItemPropInfo from '../components/ItemPropInfo.vue';
@@ -139,6 +140,8 @@ import SocketList, { Socket } from "../constants/SocketList";
 import ServerService, {
   RequestAccessaryFromTrader, RequestComposition,
 } from "../service/ServerService.vue";
+
+const MaxSearchCount = 3000;
 
 @Component({
   components: {
@@ -179,6 +182,10 @@ export default class AccList extends mixins(ServerService) {
 
   // 데이터 너무 많이 받았다는 응답;
   dataTooMuch = 0;
+
+  totalCount = 0;
+  calcCount = 0;
+  
 
 
   /**
@@ -296,6 +303,20 @@ export default class AccList extends mixins(ServerService) {
       })
       return;
     }
+    if(this.need.filter((val: number) => (val < 0 || val > 15) ? true : false).length > 0) {
+      this.$notify({
+        type: 'error',
+        group: 'validation',
+        title: '요청 불가',
+        text: '각인은 수치는 0에서 15로 맞춰주세요',
+      });
+      this.$gtag.event('search', {
+        'event_category': 'searchSocket',
+        'event_label': 'searchSocket',
+        'value': -5
+      })
+      return;
+    }
     
     this.$gtag.event('search', {
         'event_category': 'searchSocket',
@@ -303,17 +324,26 @@ export default class AccList extends mixins(ServerService) {
         'value': 0
       })
 
+    // 진행 개수 초기화
+    this.totalCount = 0;
+    this.calcCount = 0;
     // 요청 스타트
     this.requestCrawling().then((res : any) => {
-      return this.requestComposition();
-    }).then((res:any) => {
-      this.$notify({
-        type: 'success',
-        group: 'validation',
-        title: '응답',
-        text: '데이터를 받아왔습니다. 확인해주세요',
+      return this.requestComposition().then((res: any) => {
+        this.$notify({
+          type: 'success',
+          group: 'validation',
+          title: '결과',
+          text: '데이터를 받아왔습니다. 확인해주세요',
+        });
+      }).catch((err: any) => {
+        this.$notify({
+          type: 'error',
+          group: 'validation',
+          title: '결과',
+          text: '에러가 발생했습니다. 다시 시도해주세요.',
+        });
       });
-      return res;
     })
   }
   async requestCrawling() {
@@ -347,20 +377,58 @@ export default class AccList extends mixins(ServerService) {
       penalty: this.selectedPenalty,
     }
     return this.postAccessaryFromTrader(param).then((res: any) => {
-      // console.log(res);
-      if(res.data.count) {
-        // console.log(res.data.count);
-        this.dataTooMuch = res.data.count;
-        this.compositions = [];
-        this.gettingComposition = false;
-        return res;
+      // worker
+      if (window.Worker) {
+        // let actions = [
+        //   { message: 'calculate', func: () => {let result = this.calculateFinal(res);}}
+        // ]
+        // let worker = SWorker.create(actions);
+        // console.log('worker', worker)
+        // worker.postMessage('calculate')
+        //   .then((result: any) => {
+        //   if(typeof result === 'number') {
+        //     // 개수 초과
+        //     this.dataTooMuch = -result;
+        //     this.compositions = [];
+        //     this.gettingComposition = false;
+        //   }
+        //   else {
+        //     this.compositions =  result;
+        //     this.gettingComposition = false;
+        //   }
+        // })
+        // return res;
+        console.log('워커 ㄴㄴ');
+        let result = this.calculateFinal(res.data);
+        if(typeof result === 'number') {
+          // 개수 초과
+          this.dataTooMuch = -result;
+          this.compositions = [];
+          this.gettingComposition = false;
+          return res;
+        }
+        else {
+          this.compositions =  result;
+          this.gettingComposition = false;
+          return res;
+        }
       }
       else {
-        this.dataTooMuch = 0;
-        this.compositions = this.calculateFinal(res.data);
-        this.gettingComposition = false;
+        console.log('워커 ㄴㄴ');
+        let result = this.calculateFinal(res.data);
+        if(typeof result === 'number') {
+          // 개수 초과
+          this.dataTooMuch = -result;
+          this.compositions = [];
+          this.gettingComposition = false;
+        }
+        else {
+          this.compositions =  result;
+          this.gettingComposition = false;
+        }
         return res;
       }
+
     })
   }
 
@@ -371,9 +439,12 @@ export default class AccList extends mixins(ServerService) {
     let penalty = this.selectedPenalty;
     let stop = false;
 
-    console.log('all cases', res);
+    // console.log('all cases', res);
 
     res.forEach((cases: any[], caseCount: number) => {
+      console.log('all cases ', caseCount, cases.length);
+      // 총 개수 누적
+      this.totalCount += res.length;
       if(stop === true) {
         return;
       }
@@ -383,30 +454,36 @@ export default class AccList extends mixins(ServerService) {
         }
         // console.log('accList', oneCase.accSocketList);
         // console.log('accList', oneCase.accList);
-        console.log('calculateFinal', oneCaseCount, maxPrice, props, penalty, oneCase.accList)
+        // console.log('calculateFinal', oneCaseCount, maxPrice, props, penalty, oneCase.accList)
         let result = this.getFinalComposition(maxPrice, props, penalty, oneCase.accList);
+        console.log('typeof(result)', typeof(result));
+        // 진행 개수 업데이트
+        ++this.calcCount;
         if(typeof(result) === 'number') {
           console.log('getFinalComposition stop', `${caseCount}-${oneCaseCount}`, result);
           stop = true;
         }else {
           // console.log('getFinalComposition', `${caseCount}-${oneCaseCount}`, result.length);
           finalResult.push(...result);
-          if(finalResult.length > 3000) {
-              stop = true;
+          if(finalResult.length > MaxSearchCount) {
+            // 멈춤!
+            stop = true;
+            console.log('멈춰!');
           }
         }
       })
     })
     console.log('finalResult', finalResult.length);
 
-    if(finalResult.length > 3000) {
-      return [-finalResult.length];
+    if(finalResult.length > MaxSearchCount) {
+      return -finalResult.length;
     }
     else {
       // 가격순으로 정렬
       finalResult.sort((a: any, b:any) => {
           return a[1].price > b[1].price ? 1 : -1;
       })
+      finalResult = finalResult.slice(0, 300);
       
       return finalResult;
     }
