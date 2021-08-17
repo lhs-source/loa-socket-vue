@@ -28,6 +28,12 @@ export default class StatService extends Vue {
             return res;
         })
     }
+
+    putLogPrice(param: any) {
+        return axios.put('/api/stat/price', param).then((res: any) => {
+            return res;
+        })
+    }
 }
 
 </script>

@@ -100,7 +100,8 @@
       </div>
       <div class="acc-list box">
         <div class="title">
-          장신구 조합 결과
+          장신구 조합 결과<br />
+          계산 중 잠시 멈출 수가 있는데 조금 기다려주시기 바랍니다.
         </div>
         <div class="contents">
           <div class="search-button flex-center" style="min-width: 360px; justify-content: center;" @click="onClickGetComposition">
@@ -139,6 +140,7 @@ import SocketList, { Socket } from "../constants/SocketList";
 import ServerService, {
   RequestAccessaryFromTrader, RequestComposition,
 } from "../service/ServerService.vue";
+import StatService from "../service/StatService.vue";
 
 const MaxSearchCount = 3000;
 
@@ -149,7 +151,7 @@ const MaxSearchCount = 3000;
     EmbeddedLoading,
   },
 })
-export default class AccList extends mixins(ServerService) {
+export default class AccList extends mixins(ServerService, StatService) {
   socketList: Socket[] = SocketList;
   // 선택한 각인 목록
   selectedSocket: Socket[] = [];
@@ -302,12 +304,13 @@ export default class AccList extends mixins(ServerService) {
       })
       return;
     }
-    if(this.need.filter((val: number) => (val < 0 || val > 15) ? true : false).length > 0) {
+    // console.log('유효 숫자', this.remainSocket.filter((val: number) => { console.log(val); return val < 0 || val > 15;} ))
+    if(this.remainSocket.filter((val: number) => val < 0 || val > 15).length > 0) {
       this.$notify({
         type: 'error',
         group: 'validation',
         title: '요청 불가',
-        text: '각인은 수치는 0에서 15로 맞춰주세요',
+        text: '필요한 각인 수치는 0에서 15로 맞춰주세요',
       });
       this.$gtag.event('search', {
         'event_category': 'searchSocket',
@@ -416,6 +419,40 @@ export default class AccList extends mixins(ServerService) {
         else {
           this.compositions =  result;
           this.gettingComposition = false;
+          
+          // 조합 결과 로그 남기기
+          let scheme: any = {
+              grade: param.grade,
+              socket: param.socketList,
+              property: [],
+              price: result[0][1].price,
+          }
+          if(param.props['[치명]']){
+              let prop: any = {
+                  id: 0,
+                  name: '치명',
+                  number: this.props['[치명]'],
+              }
+              scheme.property.push(prop);
+          }
+          if(param.props['[특화]']){
+              let prop: any = {
+                  id: 1,
+                  name: '특화',
+                  number: param.props['[특화]'],
+              }
+              scheme.property.push(prop);
+          }
+          if(param.props['[신속]']){
+              let prop: any = {
+                  id: 2,
+                  name: '신속',
+                  number: param.props['[신속]'],
+              }
+              scheme.property.push(prop);
+          }
+          this.putLogPrice(scheme);
+
           return res;
         }
       }
@@ -427,12 +464,49 @@ export default class AccList extends mixins(ServerService) {
           this.dataTooMuch = -result;
           this.compositions = [];
           this.gettingComposition = false;
+        return res;
         }
         else {
+          // 결과 잘 받아옴!
           this.compositions =  result;
           this.gettingComposition = false;
-        }
+
+          if(result[0]){
+            // 조합 결과 로그 남기기
+            let scheme: any = {
+                grade: param.grade,
+                socket: param.socketList,
+                property: [],
+                price: result[0][1].price,
+            }
+            if(param.props['[치명]']){
+                let prop: any = {
+                    id: 0,
+                    name: '치명',
+                    number: this.props['[치명]'],
+                }
+                scheme.property.push(prop);
+            }
+            if(param.props['[특화]']){
+                let prop: any = {
+                    id: 1,
+                    name: '특화',
+                    number: param.props['[특화]'],
+                }
+                scheme.property.push(prop);
+            }
+            if(param.props['[신속]']){
+                let prop: any = {
+                    id: 2,
+                    name: '신속',
+                    number: param.props['[신속]'],
+                }
+                scheme.property.push(prop);
+            }
+            this.putLogPrice(scheme);
+          }
         return res;
+        }
       }
 
     }).catch((err: any) => {
