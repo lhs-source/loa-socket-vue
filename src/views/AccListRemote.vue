@@ -348,21 +348,278 @@ export default class AccList extends mixins(ServerService) {
     }
     return this.postAccessaryFromTrader(param).then((res: any) => {
       // console.log(res);
-      this.gettingComposition = false;
       if(res.data.count) {
         // console.log(res.data.count);
         this.dataTooMuch = res.data.count;
         this.compositions = [];
+        this.gettingComposition = false;
         return res;
       }
       else {
         this.dataTooMuch = 0;
-        this.compositions = res.data;
+        this.compositions = this.calculateFinal(res.data);
+        this.gettingComposition = false;
         return res;
       }
     })
   }
+
+  calculateFinal(res: any[]) {
+    let finalResult: any[] = [];
+    let maxPrice = Number(this.maxPrice);
+    let props = this.props;
+    let penalty = this.selectedPenalty;
+    let stop = false;
+
+    console.log('all cases', res);
+
+    res.forEach((cases: any[], caseCount: number) => {
+      if(stop === true) {
+        return;
+      }
+      cases.forEach((oneCase: any, oneCaseCount: number) => {
+        if(stop === true) {
+          return;
+        }
+        // console.log('accList', oneCase.accSocketList);
+        // console.log('accList', oneCase.accList);
+        console.log('calculateFinal', oneCaseCount, maxPrice, props, penalty, oneCase.accList)
+        let result = this.getFinalComposition(maxPrice, props, penalty, oneCase.accList);
+        if(typeof(result) === 'number') {
+          console.log('getFinalComposition stop', `${caseCount}-${oneCaseCount}`, result);
+          stop = true;
+        }else {
+          // console.log('getFinalComposition', `${caseCount}-${oneCaseCount}`, result.length);
+          finalResult.push(...result);
+          if(finalResult.length > 3000) {
+              stop = true;
+          }
+        }
+      })
+    })
+    console.log('finalResult', finalResult.length);
+
+    if(finalResult.length > 3000) {
+      return [-finalResult.length];
+    }
+    else {
+      // 가격순으로 정렬
+      finalResult.sort((a: any, b:any) => {
+          return a[1].price > b[1].price ? 1 : -1;
+      })
+      
+      return finalResult;
+    }
+
+  }
+
+  getFinalComposition( maxPrice: number, props: any, penalty: any, itemList: any[]) {
+    // 장신구 목록
+    interface SumDataModel {
+      price: number;
+      sockets: any;
+      penalty: any;
+      property: any;
+      propertySum: number;
+    }
+    let tooMuchData = false;
+    let dataLimit = 3000;
+
+    // console.log('getFinalComposition', itemList.length);
+    // console.log('getFinalComposition', itemList[0]);
+    
+    // console.log(allItemList);
+    let allOfFinal: any[] = [];   
+    let propSum = Number(props['[치명]']) + Number(props['[특화]']) + Number(props['[신속]']); 
+    let recursive = (sourceList: any[], depth: number, makeList: AccData[], sumData: SumDataModel) => {
+      let listUp: any = sourceList[depth];
+      // console.log(sourceList, depth, listUp.list);
+      if(tooMuchData === true) {
+        return;
+      }
+      listUp.forEach((item : AccData) => {
+        if(tooMuchData === true) {
+          return;
+        }
+        // 아이템 이름이 같으면 안된다 ㅠ
+        if(makeList.length > 0 && makeList[makeList.length - 1].name === item.name) {
+          return;
+        }
+
+        // 악세 종류 하나의 list 중 아이템 하나임!
+        // 특성을 모두 합쳐서 sum 에 담기
+        if(!item.price || item.price < 0) {
+          return;
+        }
+        let perSumData: SumDataModel = {
+          price: sumData.price + item.price,
+          sockets: {...sumData.sockets},
+          penalty: {...sumData.penalty}, 
+          property: {...sumData.property},
+          propertySum: sumData.propertySum,
+        }
+        if(!perSumData.price || perSumData.price > maxPrice) {
+          return;
+        }
+        // 소켓
+        let socket1 = perSumData.sockets[item.socket1.name];
+        if(socket1){
+          perSumData.sockets[item.socket1.name] += item.socket1.number;
+        }else {
+          perSumData.sockets[item.socket1.name] = item.socket1.number;
+        }
+        
+        let socket2 = perSumData.sockets[item.socket2.name];
+        if(socket2){
+          perSumData.sockets[item.socket2.name] += item.socket2.number;
+        }else {
+          perSumData.sockets[item.socket2.name] = item.socket2.number;
+        }
+        // console.log(perSumData.sockets, perSumData.sockets[item.socket1.name], item.socket1.number, perSumData.sockets[item.socket2.name], item.socket2.number)
+
+        // 패널티
+        let penalty = perSumData.penalty[item.badSocket1.name];
+        if(penalty){
+          perSumData.penalty[item.badSocket1.name] += item.badSocket1.number;
+        }else {
+          perSumData.penalty[item.badSocket1.name] = item.badSocket1.number;
+        }
+        
+        // console.log(perSumData.penalty)
+        let stop = false;
+        for(let key of Object.keys(perSumData.penalty)){
+          if(perSumData.penalty[key] > 4) {
+            stop = true;
+            break;
+          }
+        }
+        if(stop === true) {
+          return;
+        }
+        
+        // 특성
+        let prop1 = perSumData.property[item.property1.name];
+        if(prop1){
+          perSumData.property[item.property1.name] += item.property1.number;
+        }else {
+          perSumData.property[item.property1.name] = item.property1.number;
+        }
+        
+        let prop2 = perSumData.property[item.property2.name];
+        if(prop2){
+          perSumData.property[item.property2.name] += item.property2.number;
+        }else {
+          perSumData.property[item.property2.name] = item.property2.number;
+        }
+
+        if(perSumData.property['[신속]'] 
+          && perSumData.property['[신속]'] > Number(props['[신속]']) + 100) {
+          return;
+        }
+        if(perSumData.property['[치명]'] 
+          && perSumData.property['[치명]'] > Number(props['[치명]']) + 100) {
+          return;
+        }
+        if(perSumData.property['[특화]'] 
+          && perSumData.property['[특화]'] > Number(props['[특화]']) + 100) {
+          return;
+        }
+        
+        // stop = false;
+        // for(let key of Object.keys(perSumData.property)){
+        //   if(perSumData.property[key] > 1200) {
+        //     stop = true;
+        //     break;
+        //   }
+        // }
+        // if(stop === true) {
+        //   return;
+        // }
+
+        let newMakeList = [...makeList, item];
+        if(depth + 1 >= 5) {
+          // console.log(newMakeList, perSumData);
+          if(perSumData.price > maxPrice) {
+            // 가격이 넘으면 안되고
+            return;
+          }
+          let itemPropSum = perSumData.property['[신속]'] ? perSumData.property['[신속]'] : 0
+                          + perSumData.property['[특화]'] ? perSumData.property['[특화]'] : 0
+                          + perSumData.property['[치명]'] ? perSumData.property['[치명]'] : 0;
+          if(propSum > itemPropSum){
+            // 특성 합이 부족하면 탈락
+            // return;
+          }
+
+          // 개별 특성 합이 너무 부족해도 탈락 
+          if(perSumData.property['[신속]'] 
+            && perSumData.property['[신속]'] < Number(props['[신속]'])) {
+            return;
+          }
+          if(perSumData.property['[치명]'] 
+            && perSumData.property['[치명]'] < Number(props['[치명]'])) {
+            return;
+          }
+          if(perSumData.property['[특화]'] 
+            && perSumData.property['[특화]'] < Number(props['[특화]'])) {
+            return;
+          }
+          perSumData.propertySum = ((perSumData.property['[특화]'] ? perSumData.property['[특화]'] : 0)
+                                  + (perSumData.property['[신속]'] ? perSumData.property['[신속]'] : 0)
+                                  + (perSumData.property['[치명]'] ? perSumData.property['[치명]'] : 0));
+
+          allOfFinal.push([newMakeList, perSumData]);
+          if(allOfFinal.length > dataLimit + 2) {
+            console.log('data too much more');
+            tooMuchData = true;
+          }
+          // this.testAllData.push([newMakeList, perSumData]);
+          return;
+        } 
+
+        recursive(sourceList, depth + 1, newMakeList, perSumData);
+      });
+    }
+    let prePenalty: any = {};
+    prePenalty[penalty.name] = Number(penalty.number);
+    recursive(itemList, 0, [], {price: 0, sockets: {}, penalty: prePenalty, property: {}, propertySum: 0,});
+    // console.log('end of getFinalComposition');
+    if(allOfFinal.length > dataLimit) {
+      return -allOfFinal.length;
+    }
+    return allOfFinal;
+  }
 }
+
+interface AccData {
+    name: string;
+    count: string;
+    grade: number;
+    acctype: number;
+    socket1: {
+        name: string;
+        number: number;
+    }
+    socket2:{
+        name: string;
+        number: number;
+    }
+    badSocket1: {
+        name: string;
+        number: number;
+    }
+    property1: {
+        name: string;
+        number: number;
+    }
+    property2: {
+        name: string;
+        number: number;
+    }
+    price: number;
+    timestamp: Date;
+}
+
 </script>
 
 <style lang="scss" scoped>
