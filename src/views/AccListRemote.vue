@@ -104,10 +104,13 @@
           계산 중 잠시 멈출 수가 있는데 조금 기다려주시기 바랍니다.
         </div>
         <div class="contents">
-          <div class="search-button flex-center" style="min-width: 360px; justify-content: center;" @click="onClickGetComposition">
+          <div class="search-button flex-center" style="min-width: 360px; justify-content: center;" @click="onClickLambda">
             조합 계산하기
             <span v-if="gettingComposition === true" class="flex-center"> - 조합 계산하는 중..<EmbeddedLoading /></span>
             <span v-else-if="gettingCrawling === true" class="flex-center"> - 데이터 찾는 중..<EmbeddedLoading /></span>
+          </div>
+          <div class="search-button flex-center" style="min-width: 360px; justify-content: center;" @click="onClickLambda">
+            테스트 람다
           </div>
           <template v-if="dataTooMuch !== 0">
             <div class="font-relics" style="">
@@ -748,6 +751,25 @@ export default class AccList extends mixins(ServerService, StatService) {
       return -allOfFinal.length;
     }
     return allOfFinal;
+  }
+
+
+  onClickLambda() {
+    let param : RequestComposition = {
+      socketList: this.selectedSocket,
+      needNumber: this.remainSocket,
+      grade: this.isRelics === true ? 5 : 4,
+      maxPrice: this.maxPrice,
+      props:  this.props,
+      penalty: this.selectedPenalty,
+    }
+    this.postLambda(param)
+    .then((lambdaRes: any) => {
+      console.log(lambdaRes);
+    })
+    .catch((err: any) => {
+      console.log(err);
+    })
   }
 }
 
