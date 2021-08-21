@@ -858,12 +858,12 @@ export default class AccList extends mixins(ServerService, StatService) {
     this.gettingComposition = true;
     this.postLambda(param)
     .then((lambdaRes: any) => {
-      console.log(lambdaRes);
+      // console.log(lambdaRes);
       this.compositions = lambdaRes.data;
       this.gettingComposition = false;
     })
     .catch((err: any) => {
-      console.log(err);
+      // console.log(err);
       this.gettingComposition = false;
     })
   }

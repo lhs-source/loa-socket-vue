@@ -1,8 +1,8 @@
 <template>
   <div class="home">
     <div>
-      주말 한정 오픈 및 테스트 중...<br/>
-      <b style="font-size: 1.25rem;">(8월 21일 ~ 8월 22일 자정 오픈예정)</b><br/>
+      테스트 중...<br/>
+      <!-- <b style="font-size: 1.25rem;">(8월 21일 ~ 8월 22일 자정 오픈예정)</b><br/> -->
     </div>
     <!-- <div style="margin-top: 64px;">
       안녕하세요 아직도 찾아주시는 분들이 계실지 몰라 페이지 띄웁니다.<br/>
