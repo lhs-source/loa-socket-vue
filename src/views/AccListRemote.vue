@@ -101,6 +101,7 @@
       <div class="acc-list box">
         <div class="title">
           장신구 조합 결과<br />
+          약 30초 ~ 1분 가량 소요
         </div>
         <div class="contents">
           <div class="search-button flex-center" style="min-width: 360px; justify-content: center;" @click="onClickLambda">
