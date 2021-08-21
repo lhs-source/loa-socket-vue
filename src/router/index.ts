@@ -48,18 +48,18 @@ const routes: Array<RouteConfig> = [
   //   component: () =>
   //     import(/* webpackChunkName: "about" */ "../views/AccListLegend.vue"),
   // },
-  // {
-  //   path: "/acc-list-remote",
-  //   name: "AccListRemote",
-  //   component: () =>
-  //     import(/* webpackChunkName: "about" */ "../views/AccListRemote.vue"),
-  // },
-  // {
-  //   path: "/stat",
-  //   name: "Statistics",
-  //   component: () =>
-  //     import(/* webpackChunkName: "about" */ "../views/Statistics.vue"),
-  // },
+  {
+    path: "/acc-list-remote",
+    name: "AccListRemote",
+    component: () =>
+      import(/* webpackChunkName: "about" */ "../views/AccListRemote.vue"),
+  },
+  {
+    path: "/stat",
+    name: "Statistics",
+    component: () =>
+      import(/* webpackChunkName: "about" */ "../views/Statistics.vue"),
+  },
 ];
 
 const router = new VueRouter({

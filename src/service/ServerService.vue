@@ -36,8 +36,11 @@ export default class ServerService extends Vue {
         })
     }
 
+    /**
+     * * 람다에 요청
+     */
     postLambda(request: RequestComposition) {
-        return axios.post('https://4ls349jiv1.execute-api.ap-northeast-2.amazonaws.com/yrdy', request).then((res: any) => {
+        return axios.post('https://api.crowloa.net/yrdy', request).then((res: any) => {
             return res;
         })
     }

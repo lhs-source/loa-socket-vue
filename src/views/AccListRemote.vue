@@ -46,15 +46,15 @@
         </div>
         <div class="row">
           <label>치명</label>
-          <input type="number" v-model="props['[치명]']" />
+          <input type="number" v-model="props['치명']" />
         </div>
         <div class="row">
           <label>특화</label>
-          <input type="number" v-model="props['[특화]']" />
+          <input type="number" v-model="props['특화']" />
         </div>
         <div class="row">
           <label>신속</label>
-          <input type="number" v-model="props['[신속]']" />
+          <input type="number" v-model="props['신속']" />
         </div>
         <div class="description">
           전설은 치특신 합 1550~1750, 유물은 치특신 합 1800~1950 선으로 잡아주시면 됩니다. 현재 {{sumProp}}
@@ -62,10 +62,10 @@
         <div class="row">
           <label>돌 패널티</label>
           <select v-model="selectedPenalty.name" style="width: 200px;">
-            <option value="[공격속도 감소]">[공격속도 감소]</option>
-            <option value="[이동속도 감소]">[이동속도 감소]</option>
-            <option value="[방어력 감소]">[방어력 감소]</option>
-            <option value="[공격력 감소]">[공격력 감소]</option>
+            <option value="공격속도 감소">공격속도 감소</option>
+            <option value="이동속도 감소">이동속도 감소</option>
+            <option value="방어력 감소">방어력 감소</option>
+            <option value="공격력 감소">공격력 감소</option>
           </select>
           <input type="number" v-model="selectedPenalty.number" />
         </div>
@@ -101,16 +101,12 @@
       <div class="acc-list box">
         <div class="title">
           장신구 조합 결과<br />
-          계산 중 잠시 멈출 수가 있는데 조금 기다려주시기 바랍니다.
         </div>
         <div class="contents">
           <div class="search-button flex-center" style="min-width: 360px; justify-content: center;" @click="onClickLambda">
             조합 계산하기
             <span v-if="gettingComposition === true" class="flex-center"> - 조합 계산하는 중..<EmbeddedLoading /></span>
             <span v-else-if="gettingCrawling === true" class="flex-center"> - 데이터 찾는 중..<EmbeddedLoading /></span>
-          </div>
-          <div class="search-button flex-center" style="min-width: 360px; justify-content: center;" @click="onClickLambda">
-            테스트 람다
           </div>
           <template v-if="dataTooMuch !== 0">
             <div class="font-relics" style="">
@@ -174,13 +170,13 @@ export default class AccList extends mixins(ServerService, StatService) {
 
   isRelics = true;
   props = {
-    '[치명]' : 50,
-    '[특화]' : 430,
-    '[신속]' : 1400,
+    '치명' : 50,
+    '특화' : 430,
+    '신속' : 1400,
   };
   maxPrice = 50000;
   selectedPenalty = {
-    name: '[공격력 감소]',
+    name: '공격력 감소',
     number: 4,
   }
 
@@ -430,19 +426,19 @@ export default class AccList extends mixins(ServerService, StatService) {
               property: [],
               price: result[0][1].price,
           }
-          if(param.props['[치명]']){
+          if(param.props['치명']){
               let prop: any = {
                   id: 0,
                   name: '치명',
-                  number: this.props['[치명]'],
+                  number: this.props['치명'],
               }
               scheme.property.push(prop);
           }
-          if(param.props['[특화]']){
+          if(param.props['특화']){
               let prop: any = {
                   id: 1,
                   name: '특화',
-                  number: param.props['[특화]'],
+                  number: param.props['특화'],
               }
               scheme.property.push(prop);
           }
@@ -482,19 +478,19 @@ export default class AccList extends mixins(ServerService, StatService) {
                 property: [],
                 price: result[0][1].price,
             }
-            if(param.props['[치명]']){
+            if(param.props['치명']){
                 let prop: any = {
                     id: 0,
                     name: '치명',
-                    number: this.props['[치명]'],
+                    number: this.props['치명'],
                 }
                 scheme.property.push(prop);
             }
-            if(param.props['[특화]']){
+            if(param.props['특화']){
                 let prop: any = {
                     id: 1,
                     name: '특화',
-                    number: param.props['[특화]'],
+                    number: param.props['특화'],
                 }
                 scheme.property.push(prop);
             }
@@ -502,7 +498,7 @@ export default class AccList extends mixins(ServerService, StatService) {
                 let prop: any = {
                     id: 2,
                     name: '신속',
-                    number: param.props['[신속]'],
+                    number: param.props['신속'],
                 }
                 scheme.property.push(prop);
             }
@@ -593,7 +589,7 @@ export default class AccList extends mixins(ServerService, StatService) {
     
     // console.log(allItemList);
     let allOfFinal: any[] = [];   
-    let propSum = Number(props['[치명]']) + Number(props['[특화]']) + Number(props['[신속]']); 
+    let propSum = Number(props['치명']) + Number(props['특화']) + Number(props['[신속]']); 
     let recursive = (sourceList: any[], depth: number, makeList: AccData[], sumData: SumDataModel) => {
       let listUp: any = sourceList[depth];
       // console.log(sourceList, depth, listUp.list);
@@ -679,12 +675,12 @@ export default class AccList extends mixins(ServerService, StatService) {
           && perSumData.property['[신속]'] > Number(props['[신속]']) + 100) {
           return;
         }
-        if(perSumData.property['[치명]'] 
-          && perSumData.property['[치명]'] > Number(props['[치명]']) + 100) {
+        if(perSumData.property['치명'] 
+          && perSumData.property['치명'] > Number(props['치명']) + 100) {
           return;
         }
-        if(perSumData.property['[특화]'] 
-          && perSumData.property['[특화]'] > Number(props['[특화]']) + 100) {
+        if(perSumData.property['특화'] 
+          && perSumData.property['특화'] > Number(props['특화']) + 100) {
           return;
         }
         
@@ -707,8 +703,8 @@ export default class AccList extends mixins(ServerService, StatService) {
             return;
           }
           let itemPropSum = perSumData.property['[신속]'] ? perSumData.property['[신속]'] : 0
-                          + perSumData.property['[특화]'] ? perSumData.property['[특화]'] : 0
-                          + perSumData.property['[치명]'] ? perSumData.property['[치명]'] : 0;
+                          + perSumData.property['특화'] ? perSumData.property['특화'] : 0
+                          + perSumData.property['치명'] ? perSumData.property['치명'] : 0;
           if(propSum > itemPropSum){
             // 특성 합이 부족하면 탈락
             // return;
@@ -719,17 +715,17 @@ export default class AccList extends mixins(ServerService, StatService) {
             && perSumData.property['[신속]'] < Number(props['[신속]'])) {
             return;
           }
-          if(perSumData.property['[치명]'] 
-            && perSumData.property['[치명]'] < Number(props['[치명]'])) {
+          if(perSumData.property['치명'] 
+            && perSumData.property['치명'] < Number(props['치명'])) {
             return;
           }
-          if(perSumData.property['[특화]'] 
-            && perSumData.property['[특화]'] < Number(props['[특화]'])) {
+          if(perSumData.property['특화'] 
+            && perSumData.property['특화'] < Number(props['특화'])) {
             return;
           }
-          perSumData.propertySum = ((perSumData.property['[특화]'] ? perSumData.property['[특화]'] : 0)
+          perSumData.propertySum = ((perSumData.property['특화'] ? perSumData.property['특화'] : 0)
                                   + (perSumData.property['[신속]'] ? perSumData.property['[신속]'] : 0)
-                                  + (perSumData.property['[치명]'] ? perSumData.property['[치명]'] : 0));
+                                  + (perSumData.property['치명'] ? perSumData.property['치명'] : 0));
 
           allOfFinal.push([newMakeList, perSumData]);
           if(allOfFinal.length > dataLimit + 2) {
@@ -755,6 +751,101 @@ export default class AccList extends mixins(ServerService, StatService) {
 
 
   onClickLambda() {
+
+    // GA tagging
+    this.$gtag.event('search', {
+        'event_category': 'searchSocket',
+        'event_label': 'searchSocket',
+        'value': 0
+      })
+
+    // validations
+    // 지금 조회 중...
+    if(this.gettingComposition === true ||
+      this.gettingCrawling === true) {
+      this.$notify({
+        type: 'error',
+        group: 'validation',
+        title: '요청 불가',
+        text: '지금 데이터를 받아오고 있으니 조금만 기다려주세요.',
+      });
+      this.$gtag.event('search', {
+        'event_category': 'searchSocket',
+        'event_label': 'searchSocket',
+        'value': -1
+      })
+      return;
+    }
+    // 선택한 각인이 1개 이하
+    if(this.selectedSocket.length <= 1) {
+      this.$notify({
+        type: 'error',
+        group: 'validation',
+        title: '요청 불가',
+        text: '각인은 2개 이상 선택해주세요.',
+      });
+      this.$gtag.event('search', {
+        'event_category': 'searchSocket',
+        'event_label': 'searchSocket',
+        'value': -2
+      })
+      return;
+    }
+    // 특성 합을 체크한다
+    // console.log(sumProp);
+    if(this.isRelics === false && (this.sumProp < 1550 || this.sumProp > 1750) ||
+      this.isRelics === true && (this.sumProp < 1800 || this.sumProp > 1950)) {
+      this.$notify({
+        type: 'error',
+        group: 'validation',
+        title: '요청 불가',
+        text: `전설은 특성합이 1550 이상, 1750 이하, 유물은 합이 1800 이상 1950 이하여야 합니다. 현재 ${this.sumProp}.`,
+      });
+      
+      this.$gtag.event('search', {
+        'event_category': 'searchSocket',
+        'event_label': 'searchSocket',
+        'value': -3
+      })
+      return;
+    }
+    if(this.selectedPenalty.number < 0 || this.selectedPenalty.number > 4) {
+      this.$notify({
+        type: 'error',
+        group: 'validation',
+        title: '요청 불가',
+        text: `돌 패널티 수치를 확인해주세요. 0이상 4이하.`,
+      });
+      
+      this.$gtag.event('search', {
+        'event_category': 'searchSocket',
+        'event_label': 'searchSocket',
+        'value': -4
+      })
+      return;
+    }
+    // console.log('유효 숫자', this.remainSocket.filter((val: number) => { console.log(val); return val < 0 || val > 15;} ))
+    if(this.remainSocket.filter((val: number) => val < 0 || val > 15).length > 0) {
+      this.$notify({
+        type: 'error',
+        group: 'validation',
+        title: '요청 불가',
+        text: '필요한 각인 수치는 0에서 15로 맞춰주세요',
+      });
+      this.$gtag.event('search', {
+        'event_category': 'searchSocket',
+        'event_label': 'searchSocket',
+        'value': -5
+      })
+      return;
+    }
+    
+    this.$gtag.event('search', {
+        'event_category': 'searchSocket',
+        'event_label': 'searchSocket',
+        'value': 0
+      })
+
     let param : RequestComposition = {
       socketList: this.selectedSocket,
       needNumber: this.remainSocket,
@@ -763,12 +854,16 @@ export default class AccList extends mixins(ServerService, StatService) {
       props:  this.props,
       penalty: this.selectedPenalty,
     }
+    this.gettingComposition = true;
     this.postLambda(param)
     .then((lambdaRes: any) => {
       console.log(lambdaRes);
+      this.compositions = lambdaRes.data;
+      this.gettingComposition = false;
     })
     .catch((err: any) => {
       console.log(err);
+      this.gettingComposition = false;
     })
   }
 }
